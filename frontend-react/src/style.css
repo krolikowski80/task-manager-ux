@@ -1,86 +1,88 @@
-body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #f7f9fc;
-    margin: 0;
-    padding: 0;
-    color: #333;
-}
-
 .container {
     max-width: 600px;
-    margin: 40px auto;
-    padding: 24px;
+    margin: 2rem auto;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     text-align: center;
+    margin-bottom: 1rem;
     color: #2c3e50;
-    margin-bottom: 24px;
 }
 
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-input {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+.form input,
+.form textarea,
+.form select {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
     font-size: 1rem;
 }
 
-button {
-    padding: 10px 16px;
-    background-color: #2980b9;
-    color: #fff;
+.form button {
+    width: 100%;
+    padding: 0.6rem;
+    background: #2980b9;
+    color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
+    font-size: 1rem;
     cursor: pointer;
-    font-size: 0.95rem;
-    transition: background-color 0.2s ease;
-}
-
-button:hover {
-    background-color: #1c5984;
 }
 
 .task-list {
     list-style: none;
     padding: 0;
-    margin: 0;
 }
 
 .task-list li {
+    background: #f6f6f6;
+    margin: 0.5rem 0;
+    padding: 0.8rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.task-main-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f1f3f6;
-    padding: 12px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    transition: background 0.2s ease;
 }
 
-.task-list li.done {
-    background: #d5f5e3;
-    text-decoration: line-through;
-    opacity: 0.7;
+.task-text-block {
+    flex: 1;
+    padding-right: 1rem;
 }
 
-.task-list li button {
-    margin-left: 8px;
-    font-size: 1.1rem;
-    padding: 6px 10px;
-    background: #ecf0f1;
-    color: #2c3e50;
+.task-title {
+    font-weight: bold;
+    font-size: 1rem;
 }
 
-.task-list li button:hover {
-    background: #dcdde1;
+.task-description {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 0.2rem;
+}
+
+.task-meta {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: #333;
+    display: flex;
+    gap: 1rem;
+}
+
+.task-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
