@@ -1,132 +1,151 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './style.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [editId, setEditId] = useState(null);
-  const [status, setStatus] = useState('do_zrobienia');
-
-  const API_URL = 'https://app.krolikowski.cloud/tasks';
+  const [newTask, setNewTask] = useState({ title: '', description: '' });
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editedTask, setEditedTask] = useState({ title: '', description: '', completed: false });
+  const [expandedTaskId, setExpandedTaskId] = useState(null);
 
   useEffect(() => {
-    fetch(API_URL)
+    fetch('https://app.krolikowski.cloud/tasks')
       .then(res => res.json())
-      .then(setTasks)
-      .catch(console.error);
+      .then(data => setTasks(data));
   }, []);
 
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setDueDate('');
-    setStatus('do_zrobienia');
-    setEditId(null);
+  const handleInputChange = (e) => {
+    setNewTask({ ...newTask, [e.target.name]: e.target.value });
   };
 
-  const handleAddOrEditTask = async () => {
-    if (!title || !description) return alert('Uzupełnij wszystkie pola');
+  const handleEditedInputChange = (e) => {
+    setEditedTask({ ...editedTask, [e.target.name]: e.target.value });
+  };
 
-    const taskData = { title, description, status, due_date: dueDate };
-    const method = editId ? 'PUT' : 'POST';
-    const url = editId ? `${API_URL}/${editId}` : API_URL;
-
-    const response = await fetch(url, {
-      method,
+  const handleAddTask = () => {
+    fetch('https://app.krolikowski.cloud/tasks', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(taskData)
-    });
-
-    if (response.ok) {
-      const updatedTask = await response.json();
-      setTasks(prev =>
-        editId ? prev.map(t => (t.id === editId ? updatedTask : t)) : [...prev, updatedTask]
-      );
-      resetForm();
-    }
-  };
-
-  const handleDelete = async (id) => {
-    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    if (response.ok) setTasks(prev => prev.filter(t => t.id !== id));
-  };
-
-  const handleToggleComplete = async (task) => {
-    const updated = { ...task, completed: task.completed ? 0 : 1 };
-    const response = await fetch(`${API_URL}/${task.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updated)
-    });
-    if (response.ok) {
-      setTasks(prev => prev.map(t => (t.id === task.id ? updated : t)));
-    }
+      body: JSON.stringify(newTask)
+    })
+      .then(res => res.json())
+      .then(task => {
+        setTasks([...tasks, task]);
+        setNewTask({ title: '', description: '' });
+      });
   };
 
   const handleEditClick = (task) => {
-    setEditId(task.id);
-    setTitle(task.title);
-    setDescription(task.description);
-    setDueDate(task.due_date ? task.due_date.split('T')[0] : '');
-    setStatus(task.status || 'do_zrobienia');
+    setEditingTaskId(task.id);
+    setEditedTask({
+      title: task.title,
+      description: task.description,
+      completed: !!task.completed
+    });
+  };
+
+  const handleSaveEdit = (id) => {
+    fetch(`https://app.krolikowski.cloud/tasks/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editedTask)
+    })
+      .then(res => res.json())
+      .then(updated => {
+        setTasks(tasks.map(t => (t.id === id ? updated : t)));
+        setEditingTaskId(null);
+      });
+  };
+
+  const handleDeleteTask = (id) => {
+    fetch(`https://app.krolikowski.cloud/tasks/${id}`, {
+      method: 'DELETE'
+    })
+      .then(() => {
+        setTasks(tasks.filter(t => t.id !== id));
+      });
+  };
+
+  const toggleExpanded = (id) => {
+    setExpandedTaskId(prev => (prev === id ? null : id));
   };
 
   return (
-    <div className="container">
+    <div className="app">
       <h1>Lista Zadań</h1>
 
-      <div className="form">
+      <div className="new-task">
         <input
           type="text"
-          placeholder="Tytuł"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
+          name="title"
+          placeholder="Tytuł zadania"
+          value={newTask.title}
+          onChange={handleInputChange}
         />
-        <textarea
-          placeholder="Opis zadania"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-        />
-        <select value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="do_zrobienia">🕒 Do zrobienia</option>
-          <option value="w_trakcie">🔧 W trakcie</option>
-          <option value="zrobione">✅ Zrobione</option>
-        </select>
         <input
-          type="date"
-          value={dueDate}
-          onChange={e => setDueDate(e.target.value)}
+          type="text"
+          name="description"
+          placeholder="Opis zadania"
+          value={newTask.description}
+          onChange={handleInputChange}
         />
-        <button onClick={handleAddOrEditTask}>
-          {editId ? '✏️ Zapisz zmiany' : '➕ Dodaj zadanie'}
-        </button>
+        <button onClick={handleAddTask}>Dodaj zadanie</button>
       </div>
 
       <ul className="task-list">
         {tasks.map(task => (
-          <li key={task.id} className={task.completed ? 'done' : ''}>
-            <div className="task-main-row">
-              <div className="task-text-block">
-                <div className="task-title">{task.title}</div>
-                <div className="task-description">{task.description}</div>
-                <div className="task-meta">
-                  <span>🗓 {task.due_date ? task.due_date.split('T')[0] : 'brak terminu'}</span>
-                  <span>
-                    {task.status === 'zrobione' ? '✅ Zrobione' :
-                      task.status === 'w_trakcie' ? '🔧 W trakcie' : '🕒 Do zrobienia'}
-                  </span>
+          <li key={task.id} className={task.completed ? 'completed' : ''}>
+            {editingTaskId === task.id ? (
+              <>
+                <input
+                  type="text"
+                  name="title"
+                  value={editedTask.title}
+                  onChange={handleEditedInputChange}
+                />
+                <input
+                  type="text"
+                  name="description"
+                  value={editedTask.description}
+                  onChange={handleEditedInputChange}
+                />
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={editedTask.completed}
+                    onChange={(e) =>
+                      setEditedTask({ ...editedTask, completed: e.target.checked })
+                    }
+                  />{' '}
+                  Zrobione
+                </label>
+                <button onClick={() => handleSaveEdit(task.id)}>Zapisz</button>
+              </>
+            ) : (
+              <>
+                <div onClick={() => toggleExpanded(task.id)}>
+                  <strong>{task.title}</strong>{' '}
+                  <span className="status">{task.completed ? '✅' : '🕓'}</span>
                 </div>
-              </div>
-              <div className="task-buttons">
-                <button onClick={() => handleToggleComplete(task)}>
-                  {task.completed ? '✅' : '⬜'}
+
+                {expandedTaskId === task.id && (
+                  <>
+                    <div className="description">{task.description}</div>
+                    <button onClick={() => handleEditClick(task)}>Edytuj</button>
+                  </>
+                )}
+
+                <button
+                  className="delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteTask(task.id);
+                  }}
+                >
+                  🗑️
                 </button>
-                <button onClick={() => handleEditClick(task)}>✏️</button>
-                <button onClick={() => handleDelete(task.id)}>🗑️</button>
-              </div>
-            </div>
+              </>
+            )}
           </li>
         ))}
       </ul>
