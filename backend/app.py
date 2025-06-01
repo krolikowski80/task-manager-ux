@@ -1,3 +1,20 @@
+from flask import Flask, request, jsonify
+import mysql.connector
+from datetime import datetime
+import os
+
+app = Flask(__name__)
+
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.environ.get('DB_HOST', 'localhost'),
+        user=os.environ.get('DB_USER', 'nobody'),
+        password=os.environ.get('DB_PASSWORD', ''),
+        database=os.environ.get('DB_NAME', 'task_manager')
+    )
+
+
 @app.route('/tasks', methods=['POST'])
 def add_task():
     data = request.get_json()
