@@ -2,21 +2,20 @@ import os
 from flask import Flask, request, jsonify
 import mysql.connector
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
 
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.environ.get('DB_HOST', 'localhost'),
-        user=os.environ.get('DB_USER', 'nobody'),
-        password=os.environ.get('DB_PASSWORD', ''),
-        database=os.environ.get('DB_NAME', 'task_manager')
+        host=os.getenv('DB_HOST', 'localhost'),
+        user=os.getenv('DB_USER', 'nobody'),
+        password=os.getenv('DB_PASSWORD', ''),
+        database=os.getenv('DB_NAME', 'task_manager')
     )
-
-
-def get_db_connection():
-    return mysql.connector.connect(**db_config)
 
 
 @app.route('/tasks', methods=['GET'])
