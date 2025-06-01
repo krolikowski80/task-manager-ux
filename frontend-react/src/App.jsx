@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import './style.css';
 
@@ -6,7 +7,7 @@ function App() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [editingTask, setEditingTask] = useState(null);
+  const [editingTaskId, setEditingTaskId] = useState(null);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -53,87 +54,65 @@ function App() {
   };
 
   const handleEdit = (task) => {
-    setEditingTask(task);
+    setTitle(task.title);
+    setDescription(task.description);
+    setDueDate(task.due_date || '');
+    setEditingTaskId(task.id);
   };
 
-  const EditModal = ({ task, onClose }) => {
-    const [title, setTitle] = useState(task.title);
-    const [description, setDescription] = useState(task.description);
-    const [completed, setCompleted] = useState(task.completed);
-    const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
-
-    const handleSave = async () => {
-      const updated = { title, description, completed, due_date: dueDate };
-      const response = await fetch(`${API_URL}/${task.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated)
-      });
-      if (response.ok) {
-        setTasks(prev => prev.map(t => (t.id === task.id ? { ...t, ...updated } : t)));
-        onClose();
-      }
+  const handleSaveEdit = async () => {
+    const updated = {
+      title, description,
+      due_date: dueDate,
+      completed: 0
     };
+    const response = await fetch(`${API_URL}/${editingTaskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
 
-    return (
-      <div className="modal">
-        <h3>Edytuj zadanie</h3>
-        <input value={title} onChange={e => setTitle(e.target.value)} />
-        <input value={description} onChange={e => setDescription(e.target.value)} />
-        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-        <label>
-          <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked ? 1 : 0)} />
-          Zrobione
-        </label>
-        <button onClick={handleSave}>💾 Zapisz</button>
-        <button onClick={onClose}>❌ Anuluj</button>
-      </div>
-    );
+    if (response.ok) {
+      const newTasks = tasks.map(t =>
+        t.id === editingTaskId ? { ...t, ...updated } : t
+      );
+      setTasks(newTasks);
+      setEditingTaskId(null);
+      setTitle('');
+      setDescription('');
+      setDueDate('');
+    }
   };
 
   return (
     <div className="container">
       <h1>Lista Zadań</h1>
 
-      {editingTask && (
-        <EditModal task={editingTask} onClose={() => setEditingTask(null)} />
-      )}
-
       <div className="form">
-        <input
-          type="text"
-          placeholder="Tytuł"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Opis"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-        />
-        <input
-          type="date"
-          value={dueDate}
-          onChange={e => setDueDate(e.target.value)}
-        />
-        <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
+        <input type="text" placeholder="Tytuł" value={title} onChange={e => setTitle(e.target.value)} />
+        <input type="text" placeholder="Opis" value={description} onChange={e => setDescription(e.target.value)} />
+        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+        {editingTaskId ? (
+          <button onClick={handleSaveEdit}>💾 Zapisz zmiany</button>
+        ) : (
+          <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
+        )}
       </div>
 
       <ul className="task-list">
         {tasks.map(task => (
           <li key={task.id} className={task.completed ? 'done' : ''}>
-            <div>
-              <strong>{task.title}</strong>
-              <div className="description">{task.description}</div>
-              <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
-            </div>
-            <div className="actions">
-              <button onClick={() => handleToggleComplete(task)}>
-                {task.completed ? '✅' : '⬜'}
-              </button>
-              <button onClick={() => handleEdit(task)}>✏️</button>
-              <button onClick={() => handleDelete(task.id)}>🗑️</button>
+            <div className="task-main">
+              <div className="task-info">
+                <strong>{task.title}</strong>
+                <p>{task.description}</p>
+                <small>{task.due_date || 'Brak terminu'}</small>
+              </div>
+              <div className="task-actions">
+                <button onClick={() => handleToggleComplete(task)}>{task.completed ? '✅' : '⬜'}</button>
+                <button onClick={() => handleEdit(task)}>✏️</button>
+                <button onClick={() => handleDelete(task.id)}>🗑️</button>
+              </div>
             </div>
           </li>
         ))}
