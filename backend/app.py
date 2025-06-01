@@ -1,6 +1,5 @@
-from flask import Flask, Response
+from flask import Flask, request, jsonify
 import mysql.connector
-import json
 from datetime import datetime
 
 app = Flask(__name__)
@@ -12,30 +11,73 @@ db_config = {
     'database': 'task_manager'
 }
 
+
+def get_db_connection():
+    return mysql.connector.connect(**db_config)
+
+
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
-    try:
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM tasks")
-        tasks = cursor.fetchall()
-        cursor.close()
-        conn.close()
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM tasks')
+    tasks = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(tasks)
 
-        for task in tasks:
-            if isinstance(task['created_at'], datetime):
-                task['created_at'] = task['created_at'].isoformat()
 
-        return Response(
-            json.dumps(tasks, ensure_ascii=False, indent=2),
-            content_type="application/json; charset=utf-8"
-        )
-    except mysql.connector.Error as err:
-        return Response(
-            json.dumps({"error": str(err)}, ensure_ascii=False),
-            status=500,
-            content_type="application/json; charset=utf-8"
-        )
+@app.route('/tasks', methods=['POST'])
+def add_task():
+    data = request.get_json()
+    title = data.get('title')
+    description = data.get('description', '')
+    created_at = datetime.utcnow().isoformat()
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        'INSERT INTO tasks (title, description, completed, created_at) VALUES (%s, %s, %s, %s)',
+        (title, description, 0, created_at)
+    )
+    conn.commit()
+    task_id = cursor.lastrowid
+    cursor.close()
+    conn.close()
+
+    return jsonify({'id': task_id, 'title': title, 'description': description, 'completed': 0, 'created_at': created_at}), 201
+
+
+@app.route('/tasks/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    data = request.get_json()
+    title = data.get('title')
+    description = data.get('description')
+    completed = data.get('completed')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        'UPDATE tasks SET title = %s, description = %s, completed = %s WHERE id = %s',
+        (title, description, completed, task_id)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'id': task_id, 'title': title, 'description': description, 'completed': completed})
+
+
+@app.route('/tasks/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM tasks WHERE id = %s', (task_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'message': f'Task {task_id} deleted successfully'})
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=5000)
