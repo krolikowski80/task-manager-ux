@@ -1,92 +1,151 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './style.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [newTask, setNewTask] = useState({ title: '', description: '' });
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editedTask, setEditedTask] = useState({ title: '', description: '', completed: false });
+  const [expandedTaskId, setExpandedTaskId] = useState(null);
 
-  const API_URL = 'https://app.krolikowski.cloud/tasks';
-
-  // Pobieranie zadań z API
   useEffect(() => {
-    fetch(API_URL)
+    fetch('https://app.krolikowski.cloud/tasks')
       .then(res => res.json())
-      .then(setTasks)
-      .catch(console.error);
+      .then(data => setTasks(data));
   }, []);
 
-  // Dodaj zadanie
-  const handleAddTask = async () => {
-    if (!title || !description) return alert('Uzupełnij wszystkie pola');
+  const handleInputChange = (e) => {
+    setNewTask({ ...newTask, [e.target.name]: e.target.value });
+  };
 
-    const response = await fetch(API_URL, {
+  const handleEditedInputChange = (e) => {
+    setEditedTask({ ...editedTask, [e.target.name]: e.target.value });
+  };
+
+  const handleAddTask = () => {
+    fetch('https://app.krolikowski.cloud/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description })
+      body: JSON.stringify(newTask)
+    })
+      .then(res => res.json())
+      .then(task => {
+        setTasks([...tasks, task]);
+        setNewTask({ title: '', description: '' });
+      });
+  };
+
+  const handleEditClick = (task) => {
+    setEditingTaskId(task.id);
+    setEditedTask({
+      title: task.title,
+      description: task.description,
+      completed: !!task.completed
     });
-
-    if (response.ok) {
-      const newTask = await response.json();
-      setTasks(prev => [...prev, newTask]);
-      setTitle('');
-      setDescription('');
-    }
   };
 
-  // Usuń zadanie
-  const handleDelete = async (id) => {
-    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    if (response.ok) setTasks(prev => prev.filter(t => t.id !== id));
-  };
-
-  // Zmień status
-  const handleToggleComplete = async (task) => {
-    const updated = { ...task, completed: task.completed ? 0 : 1 };
-    const response = await fetch(`${API_URL}/${task.id}`, {
+  const handleSaveEdit = (id) => {
+    fetch(`https://app.krolikowski.cloud/tasks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updated)
-    });
-    if (response.ok) {
-      setTasks(prev =>
-        prev.map(t => (t.id === task.id ? updated : t))
-      );
-    }
+      body: JSON.stringify(editedTask)
+    })
+      .then(res => res.json())
+      .then(updated => {
+        setTasks(tasks.map(t => (t.id === id ? updated : t)));
+        setEditingTaskId(null);
+      });
+  };
+
+  const handleDeleteTask = (id) => {
+    fetch(`https://app.krolikowski.cloud/tasks/${id}`, {
+      method: 'DELETE'
+    })
+      .then(() => {
+        setTasks(tasks.filter(t => t.id !== id));
+      });
+  };
+
+  const toggleExpanded = (id) => {
+    setExpandedTaskId(prev => (prev === id ? null : id));
   };
 
   return (
-    <div className="container">
+    <div className="app">
       <h1>Lista Zadań</h1>
 
-      <div className="form">
+      <div className="new-task">
         <input
           type="text"
-          placeholder="Tytuł"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
+          name="title"
+          placeholder="Tytuł zadania"
+          value={newTask.title}
+          onChange={handleInputChange}
         />
         <input
           type="text"
-          placeholder="Opis"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
+          name="description"
+          placeholder="Opis zadania"
+          value={newTask.description}
+          onChange={handleInputChange}
         />
-        <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
+        <button onClick={handleAddTask}>Dodaj zadanie</button>
       </div>
 
       <ul className="task-list">
         {tasks.map(task => (
-          <li key={task.id} className={task.completed ? 'done' : ''}>
-            <div>
-              <strong>{task.title}</strong> — {task.description}
-            </div>
-            <div>
-              <button onClick={() => handleToggleComplete(task)}>
-                {task.completed ? '✅' : '⬜'}
-              </button>
-              <button onClick={() => handleDelete(task.id)}>🗑️</button>
-            </div>
+          <li key={task.id} className={task.completed ? 'completed' : ''}>
+            {editingTaskId === task.id ? (
+              <>
+                <input
+                  type="text"
+                  name="title"
+                  value={editedTask.title}
+                  onChange={handleEditedInputChange}
+                />
+                <input
+                  type="text"
+                  name="description"
+                  value={editedTask.description}
+                  onChange={handleEditedInputChange}
+                />
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={editedTask.completed}
+                    onChange={(e) =>
+                      setEditedTask({ ...editedTask, completed: e.target.checked })
+                    }
+                  />{' '}
+                  Zrobione
+                </label>
+                <button onClick={() => handleSaveEdit(task.id)}>Zapisz</button>
+              </>
+            ) : (
+              <>
+                <div onClick={() => toggleExpanded(task.id)}>
+                  <strong>{task.title}</strong>{' '}
+                  <span className="status">{task.completed ? '✅' : '🕓'}</span>
+                </div>
+
+                {expandedTaskId === task.id && (
+                  <>
+                    <div className="description">{task.description}</div>
+                    <button onClick={() => handleEditClick(task)}>Edytuj</button>
+                  </>
+                )}
+
+                <button
+                  className="delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteTask(task.id);
+                  }}
+                >
+                  🗑️
+                </button>
+              </>
+            )}
           </li>
         ))}
       </ul>
