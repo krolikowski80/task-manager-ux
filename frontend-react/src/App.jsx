@@ -8,7 +8,6 @@ function App() {
   const [dueDate, setDueDate] = useState('');
   const [editId, setEditId] = useState(null);
   const [status, setStatus] = useState('do_zrobienia');
-  const [expandedId, setExpandedId] = useState(null);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -30,13 +29,7 @@ function App() {
   const handleAddOrEditTask = async () => {
     if (!title || !description) return alert('Uzupełnij wszystkie pola');
 
-    const taskData = {
-      title,
-      description,
-      status,
-      due_date: dueDate
-    };
-
+    const taskData = { title, description, status, due_date: dueDate };
     const method = editId ? 'PUT' : 'POST';
     const url = editId ? `${API_URL}/${editId}` : API_URL;
 
@@ -48,11 +41,9 @@ function App() {
 
     if (response.ok) {
       const updatedTask = await response.json();
-      if (editId) {
-        setTasks(prev => prev.map(t => (t.id === editId ? updatedTask : t)));
-      } else {
-        setTasks(prev => [...prev, updatedTask]);
-      }
+      setTasks(prev =>
+        editId ? prev.map(t => (t.id === editId ? updatedTask : t)) : [...prev, updatedTask]
+      );
       resetForm();
     }
   };
@@ -70,9 +61,7 @@ function App() {
       body: JSON.stringify(updated)
     });
     if (response.ok) {
-      setTasks(prev =>
-        prev.map(t => (t.id === task.id ? updated : t))
-      );
+      setTasks(prev => prev.map(t => (t.id === task.id ? updated : t)));
     }
   };
 
@@ -80,12 +69,8 @@ function App() {
     setEditId(task.id);
     setTitle(task.title);
     setDescription(task.description);
-    setStatus(task.status || 'do_zrobienia');
     setDueDate(task.due_date ? task.due_date.split('T')[0] : '');
-  };
-
-  const toggleExpanded = (id) => {
-    setExpandedId(prev => (prev === id ? null : id));
+    setStatus(task.status || 'do_zrobienia');
   };
 
   return (
@@ -122,23 +107,25 @@ function App() {
       <ul className="task-list">
         {tasks.map(task => (
           <li key={task.id} className={task.completed ? 'done' : ''}>
-            <div onClick={() => toggleExpanded(task.id)}>
-              <strong>{task.title}</strong> — {task.status || '🕒'}
-            </div>
-
-            {expandedId === task.id && (
-              <div className="expanded">
-                <p><em>{task.description}</em></p>
-                {task.due_date && <p>📅 Termin: {task.due_date.split('T')[0]}</p>}
+            <div className="task-main-row">
+              <div className="task-text-block">
+                <div className="task-title">{task.title}</div>
+                <div className="task-description">{task.description}</div>
+                <div className="task-meta">
+                  <span>🗓 {task.due_date ? task.due_date.split('T')[0] : 'brak terminu'}</span>
+                  <span>
+                    {task.status === 'zrobione' ? '✅ Zrobione' :
+                      task.status === 'w_trakcie' ? '🔧 W trakcie' : '🕒 Do zrobienia'}
+                  </span>
+                </div>
               </div>
-            )}
-
-            <div className="buttons">
-              <button onClick={() => handleToggleComplete(task)}>
-                {task.completed ? '✅' : '⬜'}
-              </button>
-              <button onClick={() => handleEditClick(task)}>✏️</button>
-              <button onClick={() => handleDelete(task.id)}>🗑️</button>
+              <div className="task-buttons">
+                <button onClick={() => handleToggleComplete(task)}>
+                  {task.completed ? '✅' : '⬜'}
+                </button>
+                <button onClick={() => handleEditClick(task)}>✏️</button>
+                <button onClick={() => handleDelete(task.id)}>🗑️</button>
+              </div>
             </div>
           </li>
         ))}
