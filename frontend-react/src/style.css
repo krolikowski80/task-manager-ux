@@ -1,75 +1,86 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
-    padding: 2rem;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f7f9fc;
     margin: 0;
+    padding: 0;
+    color: #333;
 }
 
-.app-container {
+.container {
     max-width: 600px;
-    margin: 0 auto;
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 40px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 h1 {
     text-align: center;
-    color: #333;
+    color: #2c3e50;
+    margin-bottom: 24px;
 }
 
-.task-form {
+.form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
-.task-form input,
-.task-form textarea {
-    padding: 0.8rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+input {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
 }
 
-.task-form button {
-    padding: 0.8rem;
-    background-color: #4caf50;
-    color: white;
+button {
+    padding: 10px 16px;
+    background-color: #2980b9;
+    color: #fff;
     border: none;
-    font-weight: bold;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease;
 }
 
-.task-form button:hover {
-    background-color: #45a049;
+button:hover {
+    background-color: #1c5984;
 }
 
 .task-list {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
-.task-item {
-    background: #f9f9f9;
-    border-left: 5px solid #4caf50;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    border-radius: 5px;
+.task-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f1f3f6;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
 }
 
-.task-item h3 {
-    margin: 0 0 0.5rem 0;
+.task-list li.done {
+    background: #d5f5e3;
+    text-decoration: line-through;
+    opacity: 0.7;
 }
 
-.task-item .done {
-    color: green;
-    font-weight: bold;
+.task-list li button {
+    margin-left: 8px;
+    font-size: 1.1rem;
+    padding: 6px 10px;
+    background: #ecf0f1;
+    color: #2c3e50;
 }
 
-.task-item .pending {
-    color: orange;
-    font-weight: bold;
+.task-list li button:hover {
+    background: #dcdde1;
 }

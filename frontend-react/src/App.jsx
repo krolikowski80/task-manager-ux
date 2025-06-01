@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import './style.css';
 
 function App() {
@@ -6,69 +6,87 @@ function App() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
+  const API_URL = 'https://app.krolikowski.cloud/tasks';
+
+  // Pobieranie zadań z API
   useEffect(() => {
-    fetchTasks();
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(setTasks)
+      .catch(console.error);
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch('https://app.krolikowski.cloud/tasks');
-      const data = await response.json();
-      setTasks(data);
-    } catch (error) {
-      console.error('Błąd pobierania zadań:', error);
+  // Dodaj zadanie
+  const handleAddTask = async () => {
+    if (!title || !description) return alert('Uzupełnij wszystkie pola');
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, description })
+    });
+
+    if (response.ok) {
+      const newTask = await response.json();
+      setTasks(prev => [...prev, newTask]);
+      setTitle('');
+      setDescription('');
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title.trim()) return;
+  // Usuń zadanie
+  const handleDelete = async (id) => {
+    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+    if (response.ok) setTasks(prev => prev.filter(t => t.id !== id));
+  };
 
-    try {
-      const response = await fetch('https://app.krolikowski.cloud/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description }),
-      });
-
-      if (response.ok) {
-        setTitle('');
-        setDescription('');
-        fetchTasks();
-      }
-    } catch (error) {
-      console.error('Błąd dodawania zadania:', error);
+  // Zmień status
+  const handleToggleComplete = async (task) => {
+    const updated = { ...task, completed: task.completed ? 0 : 1 };
+    const response = await fetch(`${API_URL}/${task.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
+    if (response.ok) {
+      setTasks(prev =>
+        prev.map(t => (t.id === task.id ? updated : t))
+      );
     }
   };
 
   return (
-    <div className="app-container">
-      <h1>📝 Lista Zadań</h1>
+    <div className="container">
+      <h1>Lista Zadań</h1>
 
-      <form onSubmit={handleSubmit} className="task-form">
+      <div className="form">
         <input
           type="text"
-          placeholder="Tytuł zadania"
+          placeholder="Tytuł"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
+          onChange={e => setTitle(e.target.value)}
         />
-        <textarea
-          placeholder="Opis zadania"
+        <input
+          type="text"
+          placeholder="Opis"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={e => setDescription(e.target.value)}
         />
-        <button type="submit">➕ Dodaj zadanie</button>
-      </form>
+        <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
+      </div>
 
       <ul className="task-list">
-        {tasks.map((task) => (
-          <li key={task.id} className="task-item">
-            <h3>{task.title}</h3>
-            <p>{task.description}</p>
-            <span className={task.completed ? 'done' : 'pending'}>
-              {task.completed ? '✔️ Ukończone' : '⏳ W trakcie'}
-            </span>
+        {tasks.map(task => (
+          <li key={task.id} className={task.completed ? 'done' : ''}>
+            <div>
+              <strong>{task.title}</strong> — {task.description}
+            </div>
+            <div>
+              <button onClick={() => handleToggleComplete(task)}>
+                {task.completed ? '✅' : '⬜'}
+              </button>
+              <button onClick={() => handleDelete(task.id)}>🗑️</button>
+            </div>
           </li>
         ))}
       </ul>
