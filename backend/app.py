@@ -22,7 +22,6 @@ def get_tasks():
         cursor.close()
         conn.close()
 
-        # Konwersja datetime → string
         for task in tasks:
             if isinstance(task['created_at'], datetime):
                 task['created_at'] = task['created_at'].isoformat()
@@ -31,7 +30,6 @@ def get_tasks():
             json.dumps(tasks, ensure_ascii=False, indent=2),
             content_type="application/json; charset=utf-8"
         )
-
     except mysql.connector.Error as err:
         return Response(
             json.dumps({"error": str(err)}, ensure_ascii=False),
@@ -40,4 +38,4 @@ def get_tasks():
         )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5001)
