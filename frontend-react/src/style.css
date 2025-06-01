@@ -1,13 +1,14 @@
-
 body {
   font-family: sans-serif;
   background: #f2f2f2;
   padding: 1rem;
   margin: 0;
 }
+
 h1 {
   text-align: center;
 }
+
 .container {
   max-width: 600px;
   margin: auto;
@@ -15,42 +16,66 @@ h1 {
   padding: 1rem;
   border-radius: 10px;
 }
-.form input, .form button {
+
+.form input,
+.form button {
   display: block;
   width: 100%;
   margin: 0.25rem 0;
   padding: 0.5rem;
   font-size: 1rem;
 }
+
 .form button {
   background: #1976d2;
   color: white;
   border: none;
   border-radius: 5px;
 }
+
 .task-list {
   list-style: none;
   padding: 0;
 }
+
 .task {
   background: #f9f9f9;
   margin: 0.5rem 0;
   padding: 0.75rem;
   border-radius: 6px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
 }
+
 .task.done strong {
   text-decoration: line-through;
 }
+
 .task .info {
   flex: 1;
 }
-.task .actions {
+
+.task-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: nowrap;
+}
+
+.task-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  flex-wrap: nowrap;
+}
+
+.task-footer .actions {
   display: flex;
   gap: 0.5rem;
 }
+
 .due-date {
   font-size: 0.85rem;
   color: #555;

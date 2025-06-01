@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import './style.css';
 
@@ -80,7 +79,10 @@ function App() {
       <div className="form">
         <input name="title" value={formData.title} onChange={handleChange} placeholder="Tytuł" />
         <input name="description" value={formData.description} onChange={handleChange} placeholder="Opis" />
-        <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} />
+        <label>
+          Termin wykonania:
+          <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} />
+        </label>
         <button onClick={handleSubmit}>{editingId ? '✏️ Zapisz zmiany' : '➕ Dodaj zadanie'}</button>
       </div>
       <ul className="task-list">
@@ -92,7 +94,7 @@ function App() {
                 <span>{task.description}</span><br />
                 <span className="due-date">{task.due_date ? `📅 ${task.due_date.split('T')[0]}` : 'Brak terminu'}</span>
               </div>
-              <div className="actions">
+              <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <button onClick={() => handleToggleComplete(task)}>
                   {task.completed ? '✅' : '⬜'}
                 </button>
