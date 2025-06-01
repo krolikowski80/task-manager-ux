@@ -1,36 +1,39 @@
-body {
-  font-family: sans-serif;
-  background: #f2f2f2;
+.container {
+  max-width: 600px;
+  margin: 2rem auto;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #fff;
   padding: 1rem;
-  margin: 0;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
   text-align: center;
-}
-
-.container {
-  max-width: 600px;
-  margin: auto;
-  background: white;
-  padding: 1rem;
-  border-radius: 10px;
+  margin-bottom: 1rem;
+  color: #2c3e50;
 }
 
 .form input,
-.form button {
-  display: block;
+.form textarea,
+.form select {
   width: 100%;
-  margin: 0.25rem 0;
+  margin-bottom: 0.5rem;
   padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   font-size: 1rem;
 }
 
 .form button {
-  background: #1976d2;
+  width: 100%;
+  padding: 0.6rem;
+  background: #2980b9;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
 .task-list {
@@ -38,45 +41,48 @@ h1 {
   padding: 0;
 }
 
-.task {
-  background: #f9f9f9;
+.task-list li {
+  background: #f6f6f6;
   margin: 0.5rem 0;
-  padding: 0.75rem;
-  border-radius: 6px;
+  padding: 0.8rem;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
 }
 
-.task.done strong {
-  text-decoration: line-through;
+.task-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.task .info {
+.task-text-block {
   flex: 1;
+  padding-right: 1rem;
 }
 
-.task-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: nowrap;
+.task-title {
+  font-weight: bold;
+  font-size: 1rem;
 }
 
-.task-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.5rem;
-  flex-wrap: nowrap;
-}
-
-.task-footer .actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.due-date {
-  font-size: 0.85rem;
+.task-description {
+  font-style: italic;
+  font-size: 0.9rem;
   color: #555;
+  margin-top: 0.2rem;
+}
+
+.task-meta {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: #333;
+  display: flex;
+  gap: 1rem;
+}
+
+.task-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
