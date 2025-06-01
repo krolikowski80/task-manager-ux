@@ -4,10 +4,12 @@ import './style.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    due_date: ''
+  });
+  const [editingId, setEditingId] = useState(null);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -18,98 +20,82 @@ function App() {
       .catch(console.error);
   }, []);
 
-  const handleAddTask = async () => {
-    if (!title || !description) return alert('Uzupełnij wszystkie pola');
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description) return alert('Uzupełnij wszystkie pola');
+
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `${API_URL}/${editingId}` : API_URL;
+
+    const response = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description, due_date: dueDate })
+      body: JSON.stringify(formData)
     });
 
     if (response.ok) {
-      const newTask = await response.json();
-      setTasks(prev => [...prev, newTask]);
-      setTitle('');
-      setDescription('');
-      setDueDate('');
+      const result = await response.json();
+      setFormData({ title: '', description: '', due_date: '' });
+      setEditingId(null);
+      const updated = await fetch(API_URL).then(r => r.json());
+      setTasks(updated);
     }
   };
 
   const handleDelete = async (id) => {
-    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    if (response.ok) setTasks(prev => prev.filter(t => t.id !== id));
+    await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+    setTasks(prev => prev.filter(t => t.id !== id));
   };
 
   const handleToggleComplete = async (task) => {
     const updated = { ...task, completed: task.completed ? 0 : 1 };
-    const response = await fetch(`${API_URL}/${task.id}`, {
+    const res = await fetch(`${API_URL}/${task.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updated)
     });
-    if (response.ok) {
-      setTasks(prev => prev.map(t => (t.id === task.id ? updated : t)));
+    if (res.ok) {
+      setTasks(prev => prev.map(t => t.id === task.id ? updated : t));
     }
   };
 
   const handleEdit = (task) => {
-    setTitle(task.title);
-    setDescription(task.description);
-    setDueDate(task.due_date || '');
-    setEditingTaskId(task.id);
-  };
-
-  const handleSaveEdit = async () => {
-    const updated = {
-      title, description,
-      due_date: dueDate,
-      completed: 0
-    };
-    const response = await fetch(`${API_URL}/${editingTaskId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updated)
+    setFormData({
+      title: task.title,
+      description: task.description,
+      due_date: task.due_date?.split('T')[0] || ''
     });
-
-    if (response.ok) {
-      const newTasks = tasks.map(t =>
-        t.id === editingTaskId ? { ...t, ...updated } : t
-      );
-      setTasks(newTasks);
-      setEditingTaskId(null);
-      setTitle('');
-      setDescription('');
-      setDueDate('');
-    }
+    setEditingId(task.id);
   };
 
   return (
     <div className="container">
       <h1>Lista Zadań</h1>
-
       <div className="form">
-        <input type="text" placeholder="Tytuł" value={title} onChange={e => setTitle(e.target.value)} />
-        <input type="text" placeholder="Opis" value={description} onChange={e => setDescription(e.target.value)} />
-        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-        {editingTaskId ? (
-          <button onClick={handleSaveEdit}>💾 Zapisz zmiany</button>
-        ) : (
-          <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
-        )}
+        <input name="title" value={formData.title} onChange={handleChange} placeholder="Tytuł" />
+        <input name="description" value={formData.description} onChange={handleChange} placeholder="Opis" />
+        <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} />
+        <button onClick={handleSubmit}>{editingId ? '✏️ Zapisz zmiany' : '➕ Dodaj zadanie'}</button>
       </div>
-
       <ul className="task-list">
         {tasks.map(task => (
-          <li key={task.id} className={task.completed ? 'done' : ''}>
-            <div className="task-main">
-              <div className="task-info">
-                <strong>{task.title}</strong>
-                <p>{task.description}</p>
-                <small>{task.due_date || 'Brak terminu'}</small>
+          <li key={task.id} className="task">
+            <div className="info">
+              <div>
+                <strong>{task.title}</strong><br />
+                <span>{task.description}</span><br />
+                <span className="due-date">{task.due_date ? `📅 ${task.due_date.split('T')[0]}` : 'Brak terminu'}</span>
               </div>
-              <div className="task-actions">
-                <button onClick={() => handleToggleComplete(task)}>{task.completed ? '✅' : '⬜'}</button>
+              <div className="actions">
+                <button onClick={() => handleToggleComplete(task)}>
+                  {task.completed ? '✅' : '⬜'}
+                </button>
                 <button onClick={() => handleEdit(task)}>✏️</button>
                 <button onClick={() => handleDelete(task.id)}>🗑️</button>
               </div>

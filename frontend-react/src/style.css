@@ -1,62 +1,57 @@
 
 body {
-  font-family: -apple-system, sans-serif;
-  background: #f4f4f4;
-  margin: 0;
+  font-family: sans-serif;
+  background: #f2f2f2;
   padding: 1rem;
-}
-.container {
-  max-width: 700px;
-  margin: 0 auto;
+  margin: 0;
 }
 h1 {
   text-align: center;
 }
+.container {
+  max-width: 600px;
+  margin: auto;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+}
 .form input, .form button {
   display: block;
-  margin: 0.5rem auto;
   width: 100%;
-  padding: 0.6rem;
+  margin: 0.25rem 0;
+  padding: 0.5rem;
   font-size: 1rem;
 }
 .form button {
-  background: #3a81f1;
+  background: #1976d2;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
 }
 .task-list {
   list-style: none;
   padding: 0;
 }
-.task-main {
-  background: white;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 0.8rem;
+.task {
+  background: #f9f9f9;
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border-radius: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.task-info {
-  max-width: 70%;
-}
-.task-info p {
-  margin: 0.3rem 0;
-}
-.task-actions {
-  display: flex;
-  gap: 0.4rem;
-}
-.task-actions button {
-  font-size: 1.2rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-}
-.done {
-  opacity: 0.6;
+.task.done strong {
   text-decoration: line-through;
+}
+.task .info {
+  flex: 1;
+}
+.task .actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.due-date {
+  font-size: 0.85rem;
+  color: #555;
 }
