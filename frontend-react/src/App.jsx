@@ -7,66 +7,71 @@ function App() {
   const [description, setDescription] = useState('');
 
   useEffect(() => {
-    console.log("useEffect start");
-    fetch('https://app.krolikowski.cloud/tasks')
-      .then(response => response.json())
-      .then(data => {
-        console.log("Odebrane dane:", data);
-        setTasks(data);
-      })
-      .catch(error => console.error("Błąd fetcha:", error));
+    fetchTasks();
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch('https://app.krolikowski.cloud/tasks');
+      const data = await response.json();
+      setTasks(data);
+    } catch (error) {
+      console.error('Błąd pobierania zadań:', error);
+    }
+  };
 
-    fetch('https://app.krolikowski.cloud/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description }),
-    })
-      .then(res => res.json())
-      .then(() => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+
+    try {
+      const response = await fetch('https://app.krolikowski.cloud/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description }),
+      });
+
+      if (response.ok) {
         setTitle('');
         setDescription('');
-        return fetch('https://app.krolikowski.cloud/tasks');
-      })
-      .then(res => res.json())
-      .then(data => setTasks(data))
-      .catch(error => console.error("Błąd dodawania zadania:", error));
+        fetchTasks();
+      }
+    } catch (error) {
+      console.error('Błąd dodawania zadania:', error);
+    }
   };
 
   return (
-    <div className="app">
-      <h1>Lista Zadań</h1>
-      <ul>
-        {tasks.map(task => (
-          <li key={task.id}>
-            <strong>{task.title}</strong>: {task.description}
-          </li>
-        ))}
-      </ul>
+    <div className="app-container">
+      <h1>📝 Lista Zadań</h1>
 
-      <form onSubmit={handleSubmit}>
-        <h2>Dodaj zadanie</h2>
+      <form onSubmit={handleSubmit} className="task-form">
         <input
           type="text"
-          placeholder="Tytuł"
+          placeholder="Tytuł zadania"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
         />
-        <br />
-        <input
-          type="text"
-          placeholder="Opis"
+        <textarea
+          placeholder="Opis zadania"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          required
         />
-        <br />
-        <button type="submit">Dodaj</button>
+        <button type="submit">➕ Dodaj zadanie</button>
       </form>
+
+      <ul className="task-list">
+        {tasks.map((task) => (
+          <li key={task.id} className="task-item">
+            <h3>{task.title}</h3>
+            <p>{task.description}</p>
+            <span className={task.completed ? 'done' : 'pending'}>
+              {task.completed ? '✔️ Ukończone' : '⏳ W trakcie'}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

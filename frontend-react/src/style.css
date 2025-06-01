@@ -1,57 +1,75 @@
 body {
     font-family: Arial, sans-serif;
-    background: #f2f2f2;
+    background-color: #f2f2f2;
+    padding: 2rem;
     margin: 0;
-    padding: 0;
 }
 
-.container {
+.app-container {
     max-width: 600px;
-    margin: 2rem auto;
-    padding: 2rem;
+    margin: 0 auto;
     background: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     text-align: center;
+    color: #333;
 }
 
-form {
+.task-form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     margin-bottom: 2rem;
 }
 
-input {
-    padding: 0.5rem;
-    font-size: 1rem;
+.task-form input,
+.task-form textarea {
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
-button {
-    padding: 0.5rem;
-    font-size: 1rem;
-    background: #007bff;
+.task-form button {
+    padding: 0.8rem;
+    background-color: #4caf50;
     color: white;
     border: none;
-    border-radius: 4px;
+    font-weight: bold;
+    border-radius: 5px;
     cursor: pointer;
 }
 
-button:hover {
-    background: #0056b3;
+.task-form button:hover {
+    background-color: #45a049;
 }
 
-ul {
+.task-list {
     list-style: none;
     padding: 0;
 }
 
-li {
+.task-item {
     background: #f9f9f9;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-radius: 4px;
+    border-left: 5px solid #4caf50;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 5px;
+}
+
+.task-item h3 {
+    margin: 0 0 0.5rem 0;
+}
+
+.task-item .done {
+    color: green;
+    font-weight: bold;
+}
+
+.task-item .pending {
+    color: orange;
+    font-weight: bold;
 }
