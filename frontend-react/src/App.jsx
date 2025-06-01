@@ -83,7 +83,7 @@ function App() {
         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
         <label>
           <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked ? 1 : 0)} />
-          Zrobione
+          <small>Zrobione</small>
         </label>
         <button onClick={handleSave}>💾 Zapisz</button>
         <button onClick={onClose}>❌ Anuluj</button>
@@ -105,17 +105,20 @@ function App() {
           placeholder="Tytuł"
           value={title}
           onChange={e => setTitle(e.target.value)}
+          style={{ width: "10rem" }}
         />
         <input
           type="text"
           placeholder="Opis"
           value={description}
           onChange={e => setDescription(e.target.value)}
+          style={{ width: "10rem" }}
         />
         <input
           type="date"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
+          style={{ width: "10rem" }}
         />
         <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
       </div>

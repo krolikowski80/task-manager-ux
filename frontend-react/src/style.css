@@ -4,18 +4,32 @@ body {
   padding: 0;
   background: #f4f4f4;
 }
+
 .container {
   max-width: 600px;
   margin: auto;
   padding: 1rem;
 }
+
 .form input {
-  margin: 0.3rem;
+  margin: 0.5rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
+
+.form label {
+  font-weight: bold;
+  display: block;
+  margin-top: 0.5rem;
+}
+
 .task-list {
   list-style: none;
   padding: 0;
 }
+
 .task-list li {
   display: flex;
   justify-content: space-between;
@@ -23,23 +37,29 @@ body {
   padding: 0.6rem;
   margin: 0.4rem 0;
   border-radius: 6px;
-  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  align-items: center;
 }
+
 .task-list li.done {
   text-decoration: line-through;
   opacity: 0.6;
 }
+
 .task-list .description {
   font-size: 0.9em;
   color: #555;
 }
+
 .task-list .date {
   font-size: 0.8em;
   color: #888;
 }
+
 .task-list .actions button {
   margin-left: 0.3rem;
 }
+
 .modal {
   position: fixed;
   background: white;
@@ -50,4 +70,8 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 999;
+}
+
+.modal label[for="completed"] {
+  font-size: 0.8rem;
 }
