@@ -1,15 +1,18 @@
+import os
 from flask import Flask, request, jsonify
 import mysql.connector
 from datetime import datetime
 
 app = Flask(__name__)
 
-db_config = {
-    'host': '85.193.192.108',
-    'user': 'tm_user',
-    'password': 'TaskHaslo!123',
-    'database': 'task_manager'
-}
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.environ.get('DB_HOST', 'localhost'),
+        user=os.environ.get('DB_USER', 'nobody'),
+        password=os.environ.get('DB_PASSWORD', ''),
+        database=os.environ.get('DB_NAME', 'task_manager')
+    )
 
 
 def get_db_connection():
