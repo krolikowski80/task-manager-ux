@@ -23,7 +23,11 @@ function App() {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description, due_date: dueDate })
+      body: JSON.stringify({
+        title,
+        description,
+        due_date: dueDate || null
+      })
     });
 
     if (response.ok) {
