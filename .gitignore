@@ -1,0 +1,17 @@
+# node_modules – dependencies
+node_modules/
+
+# build – production output
+build/
+
+# logs i diagnostyka
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# systemowe i IDE
+.DS_Store
+.env
+*.swp
+.idea/
+.vscode/
