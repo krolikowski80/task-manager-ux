@@ -3,12 +3,12 @@ import './style.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    due_date: ''
-  });
-  const [editingId, setEditingId] = useState(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [status, setStatus] = useState('do_zrobienia');
+  const [expandedId, setExpandedId] = useState(null);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -19,88 +19,126 @@ function App() {
       .catch(console.error);
   }, []);
 
-  const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setDueDate('');
+    setStatus('do_zrobienia');
+    setEditId(null);
   };
 
-  const handleSubmit = async () => {
-    if (!formData.title || !formData.description) return alert('Uzupełnij wszystkie pola');
+  const handleAddOrEditTask = async () => {
+    if (!title || !description) return alert('Uzupełnij wszystkie pola');
 
-    const method = editingId ? 'PUT' : 'POST';
-    const url = editingId ? `${API_URL}/${editingId}` : API_URL;
+    const taskData = {
+      title,
+      description,
+      status,
+      due_date: dueDate
+    };
+
+    const method = editId ? 'PUT' : 'POST';
+    const url = editId ? `${API_URL}/${editId}` : API_URL;
 
     const response = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(taskData)
     });
 
     if (response.ok) {
-      const result = await response.json();
-      setFormData({ title: '', description: '', due_date: '' });
-      setEditingId(null);
-      const updated = await fetch(API_URL).then(r => r.json());
-      setTasks(updated);
+      const updatedTask = await response.json();
+      if (editId) {
+        setTasks(prev => prev.map(t => (t.id === editId ? updatedTask : t)));
+      } else {
+        setTasks(prev => [...prev, updatedTask]);
+      }
+      resetForm();
     }
   };
 
   const handleDelete = async (id) => {
-    await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    setTasks(prev => prev.filter(t => t.id !== id));
+    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+    if (response.ok) setTasks(prev => prev.filter(t => t.id !== id));
   };
 
   const handleToggleComplete = async (task) => {
     const updated = { ...task, completed: task.completed ? 0 : 1 };
-    const res = await fetch(`${API_URL}/${task.id}`, {
+    const response = await fetch(`${API_URL}/${task.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updated)
     });
-    if (res.ok) {
-      setTasks(prev => prev.map(t => t.id === task.id ? updated : t));
+    if (response.ok) {
+      setTasks(prev =>
+        prev.map(t => (t.id === task.id ? updated : t))
+      );
     }
   };
 
-  const handleEdit = (task) => {
-    setFormData({
-      title: task.title,
-      description: task.description,
-      due_date: task.due_date?.split('T')[0] || ''
-    });
-    setEditingId(task.id);
+  const handleEditClick = (task) => {
+    setEditId(task.id);
+    setTitle(task.title);
+    setDescription(task.description);
+    setStatus(task.status || 'do_zrobienia');
+    setDueDate(task.due_date ? task.due_date.split('T')[0] : '');
+  };
+
+  const toggleExpanded = (id) => {
+    setExpandedId(prev => (prev === id ? null : id));
   };
 
   return (
     <div className="container">
       <h1>Lista Zadań</h1>
+
       <div className="form">
-        <input name="title" value={formData.title} onChange={handleChange} placeholder="Tytuł" />
-        <input name="description" value={formData.description} onChange={handleChange} placeholder="Opis" />
-        <label>
-          Termin wykonania:
-          <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} />
-        </label>
-        <button onClick={handleSubmit}>{editingId ? '✏️ Zapisz zmiany' : '➕ Dodaj zadanie'}</button>
+        <input
+          type="text"
+          placeholder="Tytuł"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+        />
+        <textarea
+          placeholder="Opis zadania"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+        />
+        <select value={status} onChange={e => setStatus(e.target.value)}>
+          <option value="do_zrobienia">🕒 Do zrobienia</option>
+          <option value="w_trakcie">🔧 W trakcie</option>
+          <option value="zrobione">✅ Zrobione</option>
+        </select>
+        <input
+          type="date"
+          value={dueDate}
+          onChange={e => setDueDate(e.target.value)}
+        />
+        <button onClick={handleAddOrEditTask}>
+          {editId ? '✏️ Zapisz zmiany' : '➕ Dodaj zadanie'}
+        </button>
       </div>
+
       <ul className="task-list">
         {tasks.map(task => (
-          <li key={task.id} className="task">
-            <div className="info">
-              <div>
-                <strong>{task.title}</strong><br />
-                <span>{task.description}</span><br />
-                <span className="due-date">{task.due_date ? `📅 ${task.due_date.split('T')[0]}` : 'Brak terminu'}</span>
+          <li key={task.id} className={task.completed ? 'done' : ''}>
+            <div onClick={() => toggleExpanded(task.id)}>
+              <strong>{task.title}</strong> — {task.status || '🕒'}
+            </div>
+
+            {expandedId === task.id && (
+              <div className="expanded">
+                <p><em>{task.description}</em></p>
+                {task.due_date && <p>📅 Termin: {task.due_date.split('T')[0]}</p>}
               </div>
-              <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button onClick={() => handleToggleComplete(task)}>
-                  {task.completed ? '✅' : '⬜'}
-                </button>
-                <button onClick={() => handleEdit(task)}>✏️</button>
-                <button onClick={() => handleDelete(task.id)}>🗑️</button>
-              </div>
+            )}
+
+            <div className="buttons">
+              <button onClick={() => handleToggleComplete(task)}>
+                {task.completed ? '✅' : '⬜'}
+              </button>
+              <button onClick={() => handleEditClick(task)}>✏️</button>
+              <button onClick={() => handleDelete(task.id)}>🗑️</button>
             </div>
           </li>
         ))}
