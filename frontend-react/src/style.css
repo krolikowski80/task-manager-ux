@@ -1,88 +1,53 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f4f4f4;
+}
 .container {
-    max-width: 600px;
-    margin: 2rem auto;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #fff;
-    padding: 1rem;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: auto;
+  padding: 1rem;
 }
-
-h1 {
-    text-align: center;
-    margin-bottom: 1rem;
-    color: #2c3e50;
+.form input {
+  margin: 0.3rem;
 }
-
-.form input,
-.form textarea,
-.form select {
-    width: 100%;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-}
-
-.form button {
-    width: 100%;
-    padding: 0.6rem;
-    background: #2980b9;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
 .task-list {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  padding: 0;
 }
-
 .task-list li {
-    background: #f6f6f6;
-    margin: 0.5rem 0;
-    padding: 0.8rem;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  padding: 0.6rem;
+  margin: 0.4rem 0;
+  border-radius: 6px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
 }
-
-.task-main-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.task-list li.done {
+  text-decoration: line-through;
+  opacity: 0.6;
 }
-
-.task-text-block {
-    flex: 1;
-    padding-right: 1rem;
+.task-list .description {
+  font-size: 0.9em;
+  color: #555;
 }
-
-.task-title {
-    font-weight: bold;
-    font-size: 1rem;
+.task-list .date {
+  font-size: 0.8em;
+  color: #888;
 }
-
-.task-description {
-    font-style: italic;
-    font-size: 0.9rem;
-    color: #555;
-    margin-top: 0.2rem;
+.task-list .actions button {
+  margin-left: 0.3rem;
 }
-
-.task-meta {
-    margin-top: 0.3rem;
-    font-size: 0.8rem;
-    color: #333;
-    display: flex;
-    gap: 1rem;
-}
-
-.task-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+.modal {
+  position: fixed;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px black;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999;
 }

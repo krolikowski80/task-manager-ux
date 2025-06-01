@@ -6,8 +6,7 @@ function App() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [editId, setEditId] = useState(null);
-  const [status, setStatus] = useState('do_zrobienia');
+  const [editingTask, setEditingTask] = useState(null);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -18,33 +17,21 @@ function App() {
       .catch(console.error);
   }, []);
 
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setDueDate('');
-    setStatus('do_zrobienia');
-    setEditId(null);
-  };
-
-  const handleAddOrEditTask = async () => {
+  const handleAddTask = async () => {
     if (!title || !description) return alert('Uzupełnij wszystkie pola');
 
-    const taskData = { title, description, status, due_date: dueDate };
-    const method = editId ? 'PUT' : 'POST';
-    const url = editId ? `${API_URL}/${editId}` : API_URL;
-
-    const response = await fetch(url, {
-      method,
+    const response = await fetch(API_URL, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(taskData)
+      body: JSON.stringify({ title, description, due_date: dueDate })
     });
 
     if (response.ok) {
-      const updatedTask = await response.json();
-      setTasks(prev =>
-        editId ? prev.map(t => (t.id === editId ? updatedTask : t)) : [...prev, updatedTask]
-      );
-      resetForm();
+      const newTask = await response.json();
+      setTasks(prev => [...prev, newTask]);
+      setTitle('');
+      setDescription('');
+      setDueDate('');
     }
   };
 
@@ -65,17 +52,52 @@ function App() {
     }
   };
 
-  const handleEditClick = (task) => {
-    setEditId(task.id);
-    setTitle(task.title);
-    setDescription(task.description);
-    setDueDate(task.due_date ? task.due_date.split('T')[0] : '');
-    setStatus(task.status || 'do_zrobienia');
+  const handleEdit = (task) => {
+    setEditingTask(task);
+  };
+
+  const EditModal = ({ task, onClose }) => {
+    const [title, setTitle] = useState(task.title);
+    const [description, setDescription] = useState(task.description);
+    const [completed, setCompleted] = useState(task.completed);
+    const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
+
+    const handleSave = async () => {
+      const updated = { title, description, completed, due_date: dueDate };
+      const response = await fetch(`${API_URL}/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      if (response.ok) {
+        setTasks(prev => prev.map(t => (t.id === task.id ? { ...t, ...updated } : t)));
+        onClose();
+      }
+    };
+
+    return (
+      <div className="modal">
+        <h3>Edytuj zadanie</h3>
+        <input value={title} onChange={e => setTitle(e.target.value)} />
+        <input value={description} onChange={e => setDescription(e.target.value)} />
+        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+        <label>
+          <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked ? 1 : 0)} />
+          Zrobione
+        </label>
+        <button onClick={handleSave}>💾 Zapisz</button>
+        <button onClick={onClose}>❌ Anuluj</button>
+      </div>
+    );
   };
 
   return (
     <div className="container">
       <h1>Lista Zadań</h1>
+
+      {editingTask && (
+        <EditModal task={editingTask} onClose={() => setEditingTask(null)} />
+      )}
 
       <div className="form">
         <input
@@ -84,48 +106,34 @@ function App() {
           value={title}
           onChange={e => setTitle(e.target.value)}
         />
-        <textarea
-          placeholder="Opis zadania"
+        <input
+          type="text"
+          placeholder="Opis"
           value={description}
           onChange={e => setDescription(e.target.value)}
         />
-        <select value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="do_zrobienia">🕒 Do zrobienia</option>
-          <option value="w_trakcie">🔧 W trakcie</option>
-          <option value="zrobione">✅ Zrobione</option>
-        </select>
         <input
           type="date"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
         />
-        <button onClick={handleAddOrEditTask}>
-          {editId ? '✏️ Zapisz zmiany' : '➕ Dodaj zadanie'}
-        </button>
+        <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
       </div>
 
       <ul className="task-list">
         {tasks.map(task => (
           <li key={task.id} className={task.completed ? 'done' : ''}>
-            <div className="task-main-row">
-              <div className="task-text-block">
-                <div className="task-title">{task.title}</div>
-                <div className="task-description">{task.description}</div>
-                <div className="task-meta">
-                  <span>🗓 {task.due_date ? task.due_date.split('T')[0] : 'brak terminu'}</span>
-                  <span>
-                    {task.status === 'zrobione' ? '✅ Zrobione' :
-                      task.status === 'w_trakcie' ? '🔧 W trakcie' : '🕒 Do zrobienia'}
-                  </span>
-                </div>
-              </div>
-              <div className="task-buttons">
-                <button onClick={() => handleToggleComplete(task)}>
-                  {task.completed ? '✅' : '⬜'}
-                </button>
-                <button onClick={() => handleEditClick(task)}>✏️</button>
-                <button onClick={() => handleDelete(task.id)}>🗑️</button>
-              </div>
+            <div>
+              <strong>{task.title}</strong>
+              <div className="description">{task.description}</div>
+              <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
+            </div>
+            <div className="actions">
+              <button onClick={() => handleToggleComplete(task)}>
+                {task.completed ? '✅' : '⬜'}
+              </button>
+              <button onClick={() => handleEdit(task)}>✏️</button>
+              <button onClick={() => handleDelete(task.id)}>🗑️</button>
             </div>
           </li>
         ))}
