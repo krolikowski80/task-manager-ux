@@ -75,3 +75,17 @@ body {
 .modal label[for="completed"] {
   font-size: 0.8rem;
 }
+
+.add-button {
+  padding: 0.5rem 1rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.add-button:hover {
+  background-color: #1565c0;
+}

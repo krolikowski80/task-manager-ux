@@ -124,7 +124,7 @@ function App() {
           onChange={e => setDueDate(e.target.value)}
           style={{ width: "10rem" }}
         />
-        <button onClick={handleAddTask}>➕ Dodaj zadanie</button>
+        <button className="add-button" onClick={handleAddTask}>➕ Dodaj zadanie</button>
       </div>
 
       <ul className="task-list">
