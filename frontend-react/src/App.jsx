@@ -6,6 +6,7 @@ function App() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [priority, setPriority] = useState('Normalne');
   const [editingTask, setEditingTask] = useState(null);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
@@ -26,7 +27,8 @@ function App() {
       body: JSON.stringify({
         title,
         description,
-        due_date: dueDate || null
+        due_date: dueDate || null,
+        priority
       })
     });
 
@@ -36,6 +38,7 @@ function App() {
       setTitle('');
       setDescription('');
       setDueDate('');
+      setPriority('Normalne');
     }
   };
 
@@ -65,9 +68,10 @@ function App() {
     const [description, setDescription] = useState(task.description);
     const [completed, setCompleted] = useState(task.completed);
     const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
+    const [priority, setPriority] = useState(task.priority || 'Normalne');
 
     const handleSave = async () => {
-      const updated = { title, description, completed, due_date: dueDate };
+      const updated = { title, description, completed, due_date: dueDate, priority };
       const response = await fetch(`${API_URL}/${task.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -85,6 +89,11 @@ function App() {
         <input value={title} onChange={e => setTitle(e.target.value)} />
         <input value={description} onChange={e => setDescription(e.target.value)} />
         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+        <select value={priority} onChange={e => setPriority(e.target.value)}>
+          <option value="Ważne">Ważne</option>
+          <option value="Normalne">Normalne</option>
+          <option value="Może poczekać">Może poczekać</option>
+        </select>
         <label>
           <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked ? 1 : 0)} />
           <small>Zrobione</small>
@@ -124,6 +133,11 @@ function App() {
           onChange={e => setDueDate(e.target.value)}
           style={{ width: "10rem" }}
         />
+        <select value={priority} onChange={e => setPriority(e.target.value)} style={{ width: '10rem' }}>
+          <option value="Ważne">Ważne</option>
+          <option value="Normalne">Normalne</option>
+          <option value="Może poczekać">Może poczekać</option>
+        </select>
         <button
           className="add-button"
           onClick={handleAddTask}
@@ -149,6 +163,7 @@ function App() {
           >
             <div>
               <strong>{task.title}</strong>
+              <div><em>Priorytet: {task.priority || 'Normalne'}</em></div>
               <div className="description">{task.description}</div>
               <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
             </div>
