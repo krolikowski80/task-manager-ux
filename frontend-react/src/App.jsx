@@ -115,7 +115,7 @@ function App() {
 
       {addingTask && (
         <EditModal
-          task={{ title: '', description: '', completed: 0, due_date: '', priority: '' }}
+          task={{ title: '', description: '', completed: 0, due_date: '', priority: 'Normalne' }}
           onClose={() => setAddingTask(false)}
           onSave={(newTask) => {
             setTasks(prev => [...prev, newTask]);
