@@ -65,8 +65,7 @@ function App() {
 
         if (response.ok) {
           const newTask = await response.json();
-          setTasks(prev => [...prev, newTask]); // dodaj do listy zadań
-          onClose(); // zamknij popup
+          onSave(newTask); // przekazanie do rodzica
         } else {
           alert('Nie udało się dodać zadania.');
         }
