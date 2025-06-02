@@ -66,6 +66,7 @@ function App() {
         if (response.ok) {
           const newTask = await response.json();
           onSave(newTask);
+          onClose();
         }
       } else {
         const response = await fetch(`${API_URL}/${task.id}`, {
