@@ -155,28 +155,47 @@ function App() {
         </button>
       </div>
 
-      <ul className="task-list" style={{ padding: 0 }}>
-        {tasks.map(task => (
-          <li
-            key={task.id}
-            className={`task-item ${task.completed ? 'done' : ''}`}
-          >
-            <div>
-              <strong>{task.title}</strong>
-              <div><em>Priorytet: {task.priority || 'Normalne'}</em></div>
-              <div className="description">{task.description}</div>
-              <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
-            </div>
-            <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'nowrap' }}>
-              <button onClick={() => handleToggleComplete(task)}>
-                {task.completed ? '✅' : '⬜'}
-              </button>
-              <button onClick={() => handleEdit(task)}>✏️</button>
-              <button onClick={() => handleDelete(task.id)}>🗑️</button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {Object.entries(
+        tasks
+          .filter(t => t.due_date)
+          .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+          .reduce((acc, task) => {
+            const date = new Date(task.due_date).toLocaleDateString('pl-PL', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            });
+            acc[date] = acc[date] || [];
+            acc[date].push(task);
+            return acc;
+          }, {})
+      ).map(([date, group]) => (
+        <div key={date}>
+          <h3>{date}</h3>
+          <ul className="task-list" style={{ padding: 0 }}>
+            {group.map(task => (
+              <li
+                key={task.id}
+                className={`task-item ${task.completed ? 'done' : ''}`}
+              >
+                <div>
+                  <strong>{task.title}</strong>
+                  <div><em>Priorytet: {task.priority || 'Normalne'}</em></div>
+                  <div className="description">{task.description}</div>
+                  <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
+                </div>
+                <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'nowrap' }}>
+                  <button onClick={() => handleToggleComplete(task)}>
+                    {task.completed ? '✅' : '⬜'}
+                  </button>
+                  <button onClick={() => handleEdit(task)}>✏️</button>
+                  <button onClick={() => handleDelete(task.id)}>🗑️</button>
+                </div>
+              </li>
+            ))}s
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }
