@@ -44,28 +44,37 @@ function App() {
   };
 
   const EditModal = ({ task, onClose }) => {
-    const [title, setTitle] = useState(task.title);
-    const [description, setDescription] = useState(task.description);
-    const [completed, setCompleted] = useState(task.completed);
-    const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
-    const [priority, setPriority] = useState(task.priority || 'Normalne');
+    const isEditing = !!task;
+    const [title, setTitle] = useState(task?.title || '');
+    const [description, setDescription] = useState(task?.description || '');
+    const [dueDate, setDueDate] = useState(task?.due_date?.split('T')[0] || '');
+    const [priority, setPriority] = useState(task?.priority || 'Normalne');
+    const [completed, setCompleted] = useState(task?.completed || 0);
 
     const handleSave = async () => {
-      const updated = { title, description, completed, due_date: dueDate, priority };
-      const response = await fetch(`${API_URL}/${task.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated)
-      });
+      const payload = { title, description, due_date: dueDate, priority, completed };
+      const response = await fetch(
+        isEditing ? `${API_URL}/${task.id}` : API_URL,
+        {
+          method: isEditing ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }
+      );
       if (response.ok) {
-        setTasks(prev => prev.map(t => (t.id === task.id ? { ...t, ...updated } : t)));
+        const updated = await response.json();
+        if (isEditing) {
+          setTasks(prev => prev.map(t => t.id === task.id ? updated : t));
+        } else {
+          setTasks(prev => [...prev, updated]);
+        }
         onClose();
       }
     };
 
     return (
       <div className="modal">
-        <h3>Edytuj zadanie</h3>
+        <h3>{isEditing ? 'Edytuj zadanie' : 'Dodaj zadanie'}</h3>
         <input value={title} onChange={e => setTitle(e.target.value)} />
         <input value={description} onChange={e => setDescription(e.target.value)} />
         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
@@ -88,33 +97,14 @@ function App() {
     <div className="container">
       <h1>Lista Zadań</h1>
 
-      {editingTask && (
-        <EditModal task={editingTask} onClose={() => setEditingTask(null)} />
+      {(editingTask || showAddModal) && (
+        <EditModal task={editingTask || null} onClose={() => {
+          setEditingTask(null);
+          setShowAddModal(false);
+        }} />
       )}
 
-      <button className="open-modal-button" onClick={() => setShowAddModal(true)}>➕ Dodaj zadanie</button>
-      {showAddModal && (
-        <AddTaskModal
-          show={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          onSubmit={async () => {
-            if (!taskData.title || !taskData.description) return alert('Uzupełnij wszystkie pola');
-            const response = await fetch(API_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(taskData)
-            });
-            if (response.ok) {
-              const newTask = await response.json();
-              setTasks(prev => [...prev, newTask]);
-              setShowAddModal(false);
-              setTaskData({ title: '', description: '', due_date: '', priority: 'Normalne' });
-            }
-          }}
-          taskData={taskData}
-          setTaskData={setTaskData}
-        />
-      )}
+      <button className="add-button" onClick={() => setShowAddModal(true)}>➕ Dodaj zadanie</button>
 
       {Object.entries(
         tasks
