@@ -124,7 +124,21 @@ function App() {
           onChange={e => setDueDate(e.target.value)}
           style={{ width: "10rem" }}
         />
-        <button className="add-button" onClick={handleAddTask}>➕ Dodaj zadanie</button>
+        <button
+          className="add-button"
+          onClick={handleAddTask}
+          style={{
+            padding: '1rem 2rem',
+            fontSize: '1.2rem',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
+          ➕ Dodaj zadanie
+        </button>
       </div>
 
       <ul className="task-list">
