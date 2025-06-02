@@ -43,6 +43,13 @@ function App() {
     const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
     const [priority, setPriority] = useState(task.priority || 'Normalne');
 
+    // Debug inicjalizacji
+    console.log('=== INICJALIZACJA MODAL ===');
+    console.log('task.priority z props:', task.priority);
+    console.log('Ustawiony priority w state:', task.priority || 'Normalne');
+    console.log('isNew:', isNew);
+    console.log('Cały task object:', task);
+
     const handleSave = async () => {
       const updated = {
         title,
@@ -52,23 +59,33 @@ function App() {
         priority
       };
 
-      console.log('Wysyłane dane:', updated); // Debug log
+      // Szczegółowe debugowanie
+      console.log('=== DEBUG SAVE ===');
+      console.log('Stan priority w komponencie:', priority);
+      console.log('Typ priority:', typeof priority);
+      console.log('Wysyłane dane JSON:', JSON.stringify(updated, null, 2));
+      console.log('Headers:', { 'Content-Type': 'application/json' });
 
       if (isNew) {
         try {
+          console.log('Wysyłam POST do:', API_URL);
           const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updated),
           });
 
+          console.log('Status odpowiedzi:', response.status);
+          console.log('Headers odpowiedzi:', [...response.headers.entries()]);
+
           if (response.ok) {
             const newTask = await response.json();
-            console.log('Otrzymane z serwera:', newTask); // Debug log
+            console.log('Otrzymane z serwera (RAW):', newTask);
+            console.log('Priorytet z serwera:', newTask.priority, typeof newTask.priority);
             onSave(newTask);
           } else {
             const errorText = await response.text();
-            console.error('Błąd serwera:', errorText);
+            console.error('Błąd serwera:', response.status, errorText);
             alert('Nie udało się dodać zadania: ' + errorText);
           }
         } catch (error) {
@@ -77,14 +94,19 @@ function App() {
         }
       } else {
         try {
+          console.log('Wysyłam PUT do:', `${API_URL}/${task.id}`);
           const response = await fetch(`${API_URL}/${task.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updated)
           });
 
+          console.log('Status odpowiedzi PUT:', response.status);
+
           if (response.ok) {
             const updatedTask = await response.json();
+            console.log('Zaktualizowane zadanie z serwera:', updatedTask);
+            console.log('Priorytet po aktualizacji:', updatedTask.priority);
             setTasks(prev => prev.map(t => (t.id === task.id ? updatedTask : t)));
             onClose();
           } else {
@@ -97,52 +119,59 @@ function App() {
           alert('Błąd połączenia z serwerem');
         }
       }
+      console.log('=== END DEBUG ===');
     };
 
     return (
       <div className="modal-backdrop">
         <div className="modal">
           <h3>{isNew ? 'Dodaj nowe zadanie' : 'Edytuj zadanie'}</h3>
-          
+
           <label>Tytuł:</label>
-          <input 
-            type="text" 
-            value={title} 
-            onChange={e => setTitle(e.target.value)} 
+          <input
+            type="text"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
             placeholder="Wprowadź tytuł zadania"
           />
-          
+
           <label>Opis:</label>
-          <textarea 
-            value={description} 
-            onChange={e => setDescription(e.target.value)} 
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
             placeholder="Wprowadź opis zadania"
             rows="3"
           />
-          
+
           <label>Termin wykonania:</label>
-          <input 
-            type="date" 
-            value={dueDate} 
-            onChange={e => setDueDate(e.target.value)} 
+          <input
+            type="date"
+            value={dueDate}
+            onChange={e => setDueDate(e.target.value)}
           />
-          
+
           <label>Priorytet:</label>
-          <select value={priority} onChange={e => setPriority(e.target.value)}>
+          <select
+            value={priority}
+            onChange={e => {
+              console.log('Zmiana priorytetu z:', priority, 'na:', e.target.value);
+              setPriority(e.target.value);
+            }}
+          >
             <option value="Ważne">🔥 Ważne</option>
             <option value="Normalne">📌 Normalne</option>
             <option value="Może poczekać">⏳ Może poczekać</option>
           </select>
-          
+
           <div className="checkbox-label">
-            <input 
-              type="checkbox" 
-              checked={completed === 1} 
-              onChange={e => setCompleted(e.target.checked ? 1 : 0)} 
+            <input
+              type="checkbox"
+              checked={completed === 1}
+              onChange={e => setCompleted(e.target.checked ? 1 : 0)}
             />
             <span>Zadanie wykonane</span>
           </div>
-          
+
           <div className="modal-buttons">
             <button onClick={handleSave}>💾 Zapisz</button>
             <button onClick={onClose}>❌ Anuluj</button>
@@ -157,21 +186,21 @@ function App() {
       <h1>Lista Zadań</h1>
 
       {editingTask && (
-        <EditModal 
-          task={editingTask} 
-          onClose={() => setEditingTask(null)} 
+        <EditModal
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
           onSave={() => setEditingTask(null)}
         />
       )}
 
       {addingTask && (
         <EditModal
-          task={{ 
-            title: '', 
-            description: '', 
-            completed: 0, 
-            due_date: '', 
-            priority: 'Normalne' 
+          task={{
+            title: '',
+            description: '',
+            completed: 0,
+            due_date: '',
+            priority: 'Normalne'
           }}
           onClose={() => setAddingTask(false)}
           onSave={(newTask) => {
