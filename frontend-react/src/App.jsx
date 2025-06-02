@@ -62,9 +62,14 @@ function App() {
         }
       );
       if (response.ok) {
-        const refreshed = await fetch(API_URL);
-        const updatedTasks = await refreshed.json();
-        setTasks(updatedTasks);
+        const updated = await response.json();
+        setTasks(prev => {
+          if (isEditing) {
+            return prev.map(t => t.id === task.id ? updated : t);
+          } else {
+            return [...prev, updated];
+          }
+        });
         onClose();
       }
     };
