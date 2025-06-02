@@ -51,22 +51,23 @@ function App() {
     console.log('Cały task object:', task);
 
     const handleSave = async () => {
-      const updated = {
-        title,
-        description,
-        completed: Number(completed),
-        due_date: dueDate,
-        priority
-      };
-
-      // Szczegółowe debugowanie
-      console.log('=== DEBUG SAVE ===');
-      console.log('Stan priority w komponencie:', priority);
-      console.log('Typ priority:', typeof priority);
-      console.log('Wysyłane dane JSON:', JSON.stringify(updated, null, 2));
-      console.log('Headers:', { 'Content-Type': 'application/json' });
-
       if (isNew) {
+        const updated = {
+          title,
+          description,
+          completed: Number(completed),
+          due_date: dueDate,
+          priority: String(priority)
+        };
+        console.log('DEBUG priority is:', priority);
+
+        // Szczegółowe debugowanie
+        console.log('=== DEBUG SAVE ===');
+        console.log('Stan priority w komponencie:', priority);
+        console.log('Typ priority:', typeof priority);
+        console.log('Wysyłane dane JSON:', JSON.stringify(updated, null, 2));
+        console.log('Headers:', { 'Content-Type': 'application/json' });
+
         try {
           console.log('Wysyłam POST do:', API_URL);
           const response = await fetch(API_URL, {
@@ -93,6 +94,21 @@ function App() {
           alert('Błąd połączenia z serwerem');
         }
       } else {
+        const updated = {
+          title,
+          description,
+          completed: Number(completed),
+          due_date: dueDate,
+          priority
+        };
+
+        // Szczegółowe debugowanie
+        console.log('=== DEBUG SAVE ===');
+        console.log('Stan priority w komponencie:', priority);
+        console.log('Typ priority:', typeof priority);
+        console.log('Wysyłane dane JSON:', JSON.stringify(updated, null, 2));
+        console.log('Headers:', { 'Content-Type': 'application/json' });
+
         try {
           console.log('Wysyłam PUT do:', `${API_URL}/${task.id}`);
           const response = await fetch(`${API_URL}/${task.id}`, {
