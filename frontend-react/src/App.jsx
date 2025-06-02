@@ -192,12 +192,14 @@ function App() {
                 className={`task-item ${task.completed ? 'done' : ''}`}
               >
                 <div>
-                  <strong>{task.title}</strong>
-                  <div className="priority-label">
-                    {task.priority === 'Ważne' && '🔥 '}
-                    {task.priority === 'Normalne' && '📌 '}
-                    {task.priority === 'Może poczekać' && '⏳ '}
-                    {task.priority}
+                  <div className="title-wrapper">
+                    <strong>{task.title}</strong>
+                    <div className={`priority-label ${task.priority.toLowerCase().replace(' ', '-')}`}>
+                      {task.priority === 'Ważne' && '🔥 '}
+                      {task.priority === 'Normalne' && '📌 '}
+                      {task.priority === 'Może poczekać' && '⏳ '}
+                      {task.priority}
+                    </div>
                   </div>
                   <div className="description">{task.description}</div>
                   <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
