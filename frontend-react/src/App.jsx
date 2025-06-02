@@ -75,18 +75,24 @@ function App() {
     return (
       <div className="modal">
         <h3>{isEditing ? 'Edytuj zadanie' : 'Dodaj zadanie'}</h3>
-        <input value={title} onChange={e => setTitle(e.target.value)} />
-        <input value={description} onChange={e => setDescription(e.target.value)} />
+        <input value={title} placeholder="Tytuł zadania" onChange={e => setTitle(e.target.value)} />
+        <input value={description} placeholder="Opis zadania" onChange={e => setDescription(e.target.value)} />
         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
         <select value={priority} onChange={e => setPriority(e.target.value)}>
-          <option value="Ważne">Ważne</option>
-          <option value="Normalne">Normalne</option>
-          <option value="Może poczekać">Może poczekać</option>
+          <option value="Ważne">🔥 Ważne</option>
+          <option value="Normalne">📌 Normalne</option>
+          <option value="Może poczekać">⏳ Może poczekać</option>
         </select>
-        <label>
-          <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked ? 1 : 0)} />
-          <small>Zrobione</small>
-        </label>
+        <div className="form-row">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={completed}
+              onChange={e => setCompleted(e.target.checked ? 1 : 0)}
+            />
+            <span>✅ Zrobione</span>
+          </label>
+        </div>
         <button onClick={handleSave}>💾 Zapisz</button>
         <button onClick={onClose}>❌ Anuluj</button>
       </div>
