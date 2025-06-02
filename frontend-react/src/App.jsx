@@ -57,18 +57,18 @@ function App() {
       };
 
       if (isNew) {
-        console.log("Zapisuję zadanie z priorytetem:", priority);
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updated)
+          body: JSON.stringify(updated),
         });
 
         if (response.ok) {
           const newTask = await response.json();
-          onSave(newTask);
-          onClose();
-          // window.location.reload();
+          setTasks(prev => [...prev, newTask]); // dodaj do listy zadań
+          onClose(); // zamknij popup
+        } else {
+          alert('Nie udało się dodać zadania.');
         }
       } else {
         const response = await fetch(`${API_URL}/${task.id}`, {
