@@ -59,6 +59,7 @@ function App() {
       };
 
       if (isNew) {
+        console.log("Zapisuję zadanie z priorytetem:", priority);
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
