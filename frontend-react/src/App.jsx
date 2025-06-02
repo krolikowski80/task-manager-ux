@@ -133,7 +133,12 @@ function App() {
           onChange={e => setDueDate(e.target.value)}
           style={{ width: "10rem" }}
         />
-        <select value={priority} onChange={e => setPriority(e.target.value)} style={{ width: '10rem' }}>
+        <select
+          className="priority-select"
+          value={priority}
+          onChange={e => setPriority(e.target.value)}
+          style={{ width: "10rem" }}
+        >
           <option value="Ważne">Ważne</option>
           <option value="Normalne">Normalne</option>
           <option value="Może poczekać">Może poczekać</option>
@@ -192,7 +197,7 @@ function App() {
                   <button onClick={() => handleDelete(task.id)}>🗑️</button>
                 </div>
               </li>
-            ))}s
+            ))}
           </ul>
         </div>
       ))}
