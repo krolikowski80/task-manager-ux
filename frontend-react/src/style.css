@@ -13,8 +13,16 @@ body {
 
 .form input {
   margin: 0.5rem;
-  padding: 0.5rem;
-  font-size: 1rem;
+  padding: 0.75rem;
+  font-size: 1.1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form select {
+  margin: 0.5rem;
+  padding: 0.75rem;
+  font-size: 1.1rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -39,6 +47,7 @@ body {
   border-radius: 6px;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .task-list li.done {
@@ -54,6 +63,12 @@ body {
 .task-list .date {
   font-size: 0.8em;
   color: #888;
+}
+
+.task-list .actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
 .task-list .actions button {
@@ -77,15 +92,20 @@ body {
 }
 
 .add-button {
-  padding: 0.5rem 1rem;
+  padding: 0.7rem 1.4rem;
   background-color: #1976d2;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .add-button:hover {
   background-color: #1565c0;
+}
+
+.task-list .date.missing {
+  color: #bbb;
+  font-style: italic;
 }
