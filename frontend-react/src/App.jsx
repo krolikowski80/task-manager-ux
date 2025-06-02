@@ -41,7 +41,7 @@ function App() {
     const [description, setDescription] = useState(task.description || '');
     const [completed, setCompleted] = useState(task.completed || 0);
     const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
-    const [priority, setPriority] = useState(task.priority ?? '');
+    const [priority, setPriority] = useState(task.priority || 'Normalne');
 
     // Debug inicjalizacji
     console.log('=== INICJALIZACJA MODAL ===');
@@ -83,7 +83,7 @@ function App() {
             const newTask = await response.json();
             console.log('Otrzymane z serwera (RAW):', newTask);
             console.log('Priorytet z serwera:', newTask.priority, typeof newTask.priority);
-            onSave(newTask);
+            onSave({ ...newTask, priority });
           } else {
             const errorText = await response.text();
             console.error('Błąd serwera:', response.status, errorText);
@@ -121,6 +121,7 @@ function App() {
 
           if (response.ok) {
             const updatedTask = await response.json();
+            updatedTask.priority = priority;
             console.log('Zaktualizowane zadanie z serwera:', updatedTask);
             console.log('Priorytet po aktualizacji:', updatedTask.priority);
             setTasks(prev => prev.map(t => (t.id === task.id ? updatedTask : t)));
