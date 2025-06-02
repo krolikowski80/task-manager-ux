@@ -82,12 +82,14 @@ function App() {
           placeholder="Opis zadania"
           onChange={e => setDescription(e.target.value)}
         />
-        <input
-          type="date"
-          value={dueDate}
-          placeholder="Wybierz datę zakończenia"
-          onChange={e => setDueDate(e.target.value)}
-        />
+        <label>
+          Termin wykonania
+          <input
+            type="date"
+            value={dueDate}
+            onChange={e => setDueDate(e.target.value)}
+          />
+        </label>
         <select value={priority} onChange={e => setPriority(e.target.value)}>
           <option value="Ważne">🔥 Ważne</option>
           <option value="Normalne">📌 Normalne</option>
@@ -100,7 +102,7 @@ function App() {
               checked={completed}
               onChange={e => setCompleted(e.target.checked ? 1 : 0)}
             />
-            <span>✅ Zrobione</span>
+            <span>✅ Oznacz jako wykonane</span>
           </label>
         </div>
         <div className="modal-buttons">
@@ -150,7 +152,10 @@ function App() {
                 <div>
                   <strong>{task.title}</strong>
                   <div className={`priority-label ${task.priority?.toLowerCase().replace(/\s/g, '-') || 'normalne'}`}>
-                    {task.priority || 'Normalne'}
+                    {task.priority === 'Ważne' && '🔥 '}
+                    {task.priority === 'Normalne' && '📌 '}
+                    {task.priority === 'Może poczekać' && '⏳ '}
+                    <strong>{task.priority || 'Normalne'}</strong>
                   </div>
                   <div className="description">{task.description}</div>
                   <div className="date">

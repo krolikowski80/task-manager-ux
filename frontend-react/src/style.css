@@ -207,3 +207,40 @@ body {
     padding: 0.9rem 1.5rem;
   }
 }
+
+/* Styl etykiety nad datą */
+.modal label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* Styl tagów priorytetu w liście */
+.priority-label {
+  font-weight: bold;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  display: inline-block;
+  margin: 0.4rem 0;
+  font-size: 0.85rem;
+}
+
+.priority-label.ważne {
+  background-color: #dc3545;
+  color: white;
+}
+
+.priority-label.normalne {
+  background-color: #ffc107;
+  color: black;
+}
+
+.priority-label.może-poczekać {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Maksymalna szerokość inputa daty */
+.modal input[type="date"] {
+  max-width: 100%;
+}
