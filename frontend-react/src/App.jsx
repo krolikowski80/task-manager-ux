@@ -45,9 +45,7 @@ function App() {
     const [description, setDescription] = useState(task.description);
     const [completed, setCompleted] = useState(task.completed);
     const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
-    const [priority, setPriority] = useState(() =>
-      typeof task.priority === 'string' ? task.priority : 'Normalne'
-    );
+    const [priority, setPriority] = useState(task.priority || 'Normalne');
 
     const handleSave = async () => {
       const updated = {
@@ -70,7 +68,7 @@ function App() {
           const newTask = await response.json();
           onSave(newTask);
           onClose();
-          window.location.reload();
+          // window.location.reload();
         }
       } else {
         const response = await fetch(`${API_URL}/${task.id}`, {
@@ -117,7 +115,7 @@ function App() {
 
       {addingTask && (
         <EditModal
-          task={{ title: '', description: '', completed: 0, due_date: '', priority: 'Normalne' }}
+          task={{ title: '', description: '', completed: 0, due_date: '', priority: '' }}
           onClose={() => setAddingTask(false)}
           onSave={(newTask) => {
             setTasks(prev => [...prev, newTask]);
