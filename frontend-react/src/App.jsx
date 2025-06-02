@@ -4,13 +4,7 @@ import './style.css';
 function App() {
   const [tasks, setTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [taskData, setTaskData] = useState({
-    title: '',
-    description: '',
-    due_date: '',
-    priority: 'Normalne'
-  });
+  const [addingTask, setAddingTask] = useState(false);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -20,7 +14,6 @@ function App() {
       .then(setTasks)
       .catch(console.error);
   }, []);
-
 
   const handleDelete = async (id) => {
     const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
@@ -43,73 +36,158 @@ function App() {
     setEditingTask(task);
   };
 
-  const EditModal = ({ task, onClose }) => {
-    const isEditing = !!task;
-    const [title, setTitle] = useState(task?.title || '');
-    const [description, setDescription] = useState(task?.description || '');
-    const [dueDate, setDueDate] = useState(task?.due_date?.split('T')[0] || '');
-    const [priority, setPriority] = useState(task?.priority || 'Normalne');
-    const [completed, setCompleted] = useState(task?.completed || 0);
+  const EditModal = ({ task, onClose, onSave, isNew = false }) => {
+    const [title, setTitle] = useState(task.title || '');
+    const [description, setDescription] = useState(task.description || '');
+    const [completed, setCompleted] = useState(task.completed || 0);
+    const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
+    const [priority, setPriority] = useState(task.priority || 'Normalne');
+
+    // Debug inicjalizacji
+    console.log('=== INICJALIZACJA MODAL ===');
+    console.log('task.priority z props:', task.priority);
+    console.log('Ustawiony priority w state:', task.priority || 'Normalne');
+    console.log('isNew:', isNew);
+    console.log('Cały task object:', task);
 
     const handleSave = async () => {
-      const payload = { title, description, due_date: dueDate, priority, completed };
-      const response = await fetch(
-        isEditing ? `${API_URL}/${task.id}` : API_URL,
-        {
-          method: isEditing ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }
-      );
-      if (response.ok) {
-        const updated = await response.json();
-        setTasks(prev => {
-          if (isEditing) {
-            return prev.map(t => t.id === task.id ? updated : t);
+      if (isNew) {
+        const updated = {
+          title,
+          description,
+          completed: Number(completed),
+          due_date: dueDate,
+          priority: String(priority)  // Upewnij się że to string
+        };
+
+        console.log('DEBUG priority is:', priority);
+        console.log('Wysyłane dane JSON:', JSON.stringify(updated, null, 2));
+
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated),
+          });
+
+          console.log('Status odpowiedzi:', response.status);
+
+          if (response.ok) {
+            const newTask = await response.json();
+            console.log('Otrzymane z serwera (RAW):', newTask);
+
+            // TUTAJ JEST PROBLEM - nie nadpisuj priorytetu!
+            // Użyj tego co zwrócił serwer lub upewnij się że serwer zwraca poprawny priorytet
+            console.log('Priorytet z serwera:', newTask.priority);
+
+            // Jeśli serwer nie zwraca priorytetu lub zwraca błędny, użyj lokalnego
+            if (!newTask.priority) {
+              newTask.priority = priority;
+            }
+
+            onSave(newTask); // Przekaż cały obiekt z serwera
           } else {
-            return [...prev, updated];
+            const errorText = await response.text();
+            console.error('Błąd serwera:', response.status, errorText);
+            alert('Nie udało się dodać zadania: ' + errorText);
           }
-        });
-        onClose();
+        } catch (error) {
+          console.error('Błąd sieci:', error);
+          alert('Błąd połączenia z serwerem');
+        }
+      } else {
+        // kod dla edycji pozostaje bez zmian
+        const updated = {
+          title,
+          description,
+          completed: Number(completed),
+          due_date: dueDate,
+          priority: String(priority)  // Też upewnij się że to string
+        };
+
+        try {
+          const response = await fetch(`${API_URL}/${task.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated)
+          });
+
+          if (response.ok) {
+            const updatedTask = await response.json();
+
+            // Jeśli serwer nie zwraca priorytetu, użyj lokalnego
+            if (!updatedTask.priority) {
+              updatedTask.priority = priority;
+            }
+
+            setTasks(prev => prev.map(t => (t.id === task.id ? updatedTask : t)));
+            onClose();
+          } else {
+            const errorText = await response.text();
+            console.error('Błąd aktualizacji:', errorText);
+            alert('Nie udało się zaktualizować zadania');
+          }
+        } catch (error) {
+          console.error('Błąd sieci:', error);
+          alert('Błąd połączenia z serwerem');
+        }
       }
     };
 
     return (
-      <div className="modal">
-        <h3>{isEditing ? 'Edytuj zadanie' : 'Dodaj zadanie'}</h3>
-        <input value={title} placeholder="Tytuł zadania" onChange={e => setTitle(e.target.value)} />
-        <textarea
-          rows="3"
-          value={description}
-          placeholder="Opis zadania"
-          onChange={e => setDescription(e.target.value)}
-        />
-        <label>
-          Termin wykonania
+      <div className="modal-backdrop">
+        <div className="modal">
+          <h3>{isNew ? 'Dodaj nowe zadanie' : 'Edytuj zadanie'}</h3>
+
+          <label>Tytuł:</label>
+          <input
+            type="text"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Wprowadź tytuł zadania"
+          />
+
+          <label>Opis:</label>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="Wprowadź opis zadania"
+            rows="3"
+          />
+
+          <label>Termin wykonania:</label>
           <input
             type="date"
             value={dueDate}
             onChange={e => setDueDate(e.target.value)}
           />
-        </label>
-        <select value={priority} onChange={e => setPriority(e.target.value)}>
-          <option value="Ważne">🔥 Ważne</option>
-          <option value="Normalne">📌 Normalne</option>
-          <option value="Może poczekać">⏳ Może poczekać</option>
-        </select>
-        <div className="form-row">
-          <label className="checkbox-label">
+
+          <label>Priorytet:</label>
+          <select
+            value={priority}
+            onChange={e => {
+              console.log('Zmiana priorytetu z:', priority, 'na:', e.target.value);
+              setPriority(e.target.value);
+            }}
+          >
+            <option value="Ważne">🔥 Ważne</option>
+            <option value="Normalne">📌 Normalne</option>
+            <option value="Może poczekać">⏳ Może poczekać</option>
+          </select>
+
+          <div className="checkbox-label">
             <input
               type="checkbox"
-              checked={completed}
+              checked={completed === 1}
               onChange={e => setCompleted(e.target.checked ? 1 : 0)}
             />
-            <span>✅ Oznacz jako wykonane</span>
-          </label>
-        </div>
-        <div className="modal-buttons">
-          <button onClick={handleSave}>💾 Zapisz</button>
-          <button onClick={onClose}>❌ Anuluj</button>
+            <span>Zadanie wykonane</span>
+          </div>
+
+          <div className="modal-buttons">
+            <button onClick={handleSave}>💾 Zapisz</button>
+            <button onClick={onClose}>❌ Anuluj</button>
+          </div>
         </div>
       </div>
     );
@@ -119,14 +197,38 @@ function App() {
     <div className="container">
       <h1>Lista Zadań</h1>
 
-      {(editingTask || showAddModal) && (
-        <EditModal task={editingTask || null} onClose={() => {
-          setEditingTask(null);
-          setShowAddModal(false);
-        }} />
+      {editingTask && (
+        <EditModal
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={() => setEditingTask(null)}
+        />
       )}
 
-      <button className="add-button" onClick={() => setShowAddModal(true)}>➕ Dodaj zadanie</button>
+      {addingTask && (
+        <EditModal
+          task={{
+            title: '',
+            description: '',
+            completed: 0,
+            due_date: '',
+            priority: 'Normalne'
+          }}
+          onClose={() => setAddingTask(false)}
+          onSave={(newTask) => {
+            setTasks(prev => [...prev, newTask]);
+            setAddingTask(false);
+          }}
+          isNew
+        />
+      )}
+
+      <button
+        className="add-button"
+        onClick={() => setAddingTask(true)}
+      >
+        ➕ Dodaj zadanie
+      </button>
 
       {Object.entries(
         tasks
@@ -145,34 +247,28 @@ function App() {
       ).map(([date, group]) => (
         <div key={date}>
           <h3>{date}</h3>
-          <ul className="task-list" style={{ padding: 0 }}>
+          <ul className="task-list">
             {group.map(task => (
               <li
                 key={task.id}
                 className={`task-item ${task.completed ? 'done' : ''}`}
               >
-                <div className="title-wrapper">
-                  <strong>{task.title}</strong>
-                  {task.priority && (
-                    <div className={`priority-label ${task.priority.toLowerCase().replace(/\s/g, '-')}`}>
+                <div className="task-content">
+                  <div className="title-wrapper">
+                    <strong>{task.title}</strong>
+                    <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
                       {task.priority === 'Ważne' && '🔥 '}
                       {task.priority === 'Normalne' && '📌 '}
                       {task.priority === 'Może poczekać' && '⏳ '}
                       {task.priority}
                     </div>
-                  )}
+                  </div>
                   <div className="description">{task.description}</div>
                   <div className="date">
-                    {task.due_date
-                      ? new Date(task.due_date).toLocaleDateString('pl-PL', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                      })
-                      : 'Brak terminu'}
+                    {task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}
                   </div>
                 </div>
-                <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'nowrap' }}>
+                <div className="actions">
                   <button onClick={() => handleToggleComplete(task)}>
                     {task.completed ? '✅' : '⬜'}
                   </button>
@@ -184,6 +280,40 @@ function App() {
           </ul>
         </div>
       ))}
+
+      {tasks.filter(t => !t.due_date).length > 0 && (
+        <div>
+          <h3>Bez terminu</h3>
+          <ul className="task-list">
+            {tasks.filter(t => !t.due_date).map(task => (
+              <li
+                key={task.id}
+                className={`task-item ${task.completed ? 'done' : ''}`}
+              >
+                <div className="task-content">
+                  <div className="title-wrapper">
+                    <strong>{task.title}</strong>
+                    <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
+                      {task.priority === 'Ważne' && '🔥 '}
+                      {task.priority === 'Normalne' && '📌 '}
+                      {task.priority === 'Może poczekać' && '⏳ '}
+                      {task.priority}
+                    </div>
+                  </div>
+                  <div className="description">{task.description}</div>
+                </div>
+                <div className="actions">
+                  <button onClick={() => handleToggleComplete(task)}>
+                    {task.completed ? '✅' : '⬜'}
+                  </button>
+                  <button onClick={() => handleEdit(task)}>✏️</button>
+                  <button onClick={() => handleDelete(task.id)}>🗑️</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

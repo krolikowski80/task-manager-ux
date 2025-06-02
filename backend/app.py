@@ -37,28 +37,37 @@ def add_task():
     data = request.get_json()
     title = data.get('title')
     description = data.get('description', '')
-    due_date = data.get('due_date')  # format ISO z frontend
+    due_date = data.get('due_date')
+    priority = data.get('priority', 'Normalne')  # Dodane pole priority
     created_at = datetime.now(timezone.utc).isoformat()
+
+    print(f"DEBUG Backend - otrzymane priority: {priority}")  # Debug log
 
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        'INSERT INTO tasks (title, description, completed, created_at, due_date) VALUES (%s, %s, %s, %s, %s)',
-        (title, description, 0, created_at, due_date)
+        'INSERT INTO tasks (title, description, completed, created_at, due_date, priority) VALUES (%s, %s, %s, %s, %s, %s)',
+        (title, description, 0, created_at, due_date, priority)
     )
     conn.commit()
     task_id = cursor.lastrowid
     cursor.close()
     conn.close()
 
-    return jsonify({
+    response_data = {
         'id': task_id,
         'title': title,
         'description': description,
         'completed': 0,
         'created_at': created_at,
-        'due_date': due_date
-    }), 201
+        'due_date': due_date,
+        'priority': priority  # Dodane do response
+    }
+
+    # Debug log
+    print(f"DEBUG Backend - zwracane priority: {response_data['priority']}")
+
+    return jsonify(response_data), 201
 
 
 @app.route('/tasks/<int:task_id>', methods=['PUT'])
@@ -68,24 +77,34 @@ def update_task(task_id):
     description = data.get('description')
     completed = data.get('completed')
     due_date = data.get('due_date')
+    priority = data.get('priority', 'Normalne')  # Dodane pole priority
+
+    print(f"DEBUG Backend PUT - otrzymane priority: {priority}")  # Debug log
 
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        'UPDATE tasks SET title = %s, description = %s, completed = %s, due_date = %s WHERE id = %s',
-        (title, description, completed, due_date, task_id)
+        'UPDATE tasks SET title = %s, description = %s, completed = %s, due_date = %s, priority = %s WHERE id = %s',
+        (title, description, completed, due_date, priority, task_id)
     )
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({
+    response_data = {
         'id': task_id,
         'title': title,
         'description': description,
         'completed': completed,
-        'due_date': due_date
-    })
+        'due_date': due_date,
+        'priority': priority  # Dodane do response
+    }
+
+    # Debug log
+    print(
+        f"DEBUG Backend PUT - zwracane priority: {response_data['priority']}")
+
+    return jsonify(response_data)
 
 
 @app.route('/tasks/<int:task_id>', methods=['DELETE'])
