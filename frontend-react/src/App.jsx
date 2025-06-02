@@ -141,15 +141,18 @@ function App() {
         </button>
       </div>
 
-      <ul className="task-list">
+      <ul className="task-list" style={{ padding: 0 }}>
         {tasks.map(task => (
-          <li key={task.id} className={task.completed ? 'done' : ''}>
+          <li
+            key={task.id}
+            className={`task-item ${task.completed ? 'done' : ''}`}
+          >
             <div>
               <strong>{task.title}</strong>
               <div className="description">{task.description}</div>
               <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
             </div>
-            <div className="actions">
+            <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'nowrap' }}>
               <button onClick={() => handleToggleComplete(task)}>
                 {task.completed ? '✅' : '⬜'}
               </button>
