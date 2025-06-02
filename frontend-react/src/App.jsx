@@ -3,11 +3,8 @@ import './style.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [priority, setPriority] = useState('Normalne');
   const [editingTask, setEditingTask] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -18,29 +15,6 @@ function App() {
       .catch(console.error);
   }, []);
 
-  const handleAddTask = async () => {
-    if (!title || !description) return alert('Uzupełnij wszystkie pola');
-
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title,
-        description,
-        due_date: dueDate || null,
-        priority
-      })
-    });
-
-    if (response.ok) {
-      const newTask = await response.json();
-      setTasks(prev => [...prev, newTask]);
-      setTitle('');
-      setDescription('');
-      setDueDate('');
-      setPriority('Normalne');
-    }
-  };
 
   const handleDelete = async (id) => {
     const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
@@ -112,53 +86,13 @@ function App() {
         <EditModal task={editingTask} onClose={() => setEditingTask(null)} />
       )}
 
-      <div className="form">
-        <input
-          type="text"
-          placeholder="Tytuł"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          style={{ width: "10rem" }}
+      <button className="open-modal-button" onClick={() => setShowAddModal(true)}>➕ Dodaj zadanie</button>
+      {showAddModal && (
+        <AddTaskModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={(task) => setTasks(prev => [...prev, task])}
         />
-        <input
-          type="text"
-          placeholder="Opis"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          style={{ width: "10rem" }}
-        />
-        <input
-          type="date"
-          value={dueDate}
-          onChange={e => setDueDate(e.target.value)}
-          style={{ width: "10rem" }}
-        />
-        <select
-          className="priority-select"
-          value={priority}
-          onChange={e => setPriority(e.target.value)}
-          style={{ width: "10rem", marginBottom: "0.5rem" }}
-        >
-          <option value="Ważne">Ważne</option>
-          <option value="Normalne">Normalne</option>
-          <option value="Może poczekać">Może poczekać</option>
-        </select>
-        <button
-          className="add-button"
-          onClick={handleAddTask}
-          style={{
-            padding: '1rem 2rem',
-            fontSize: '1.2rem',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          ➕ Dodaj zadanie
-        </button>
-      </div>
+      )}
 
       {Object.entries(
         tasks
@@ -213,6 +147,50 @@ function App() {
       ))}
     </div>
   );
+  // Modal dodawania zadania
+  const AddTaskModal = ({ onClose, onAdd }) => {
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [dueDate, setDueDate] = useState('');
+    const [priority, setPriority] = useState('Normalne');
+
+    const handleSubmit = async () => {
+      if (!title || !description) return alert('Uzupełnij wszystkie pola');
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description,
+          due_date: dueDate || null,
+          priority
+        })
+      });
+
+      if (response.ok) {
+        const newTask = await response.json();
+        onAdd(newTask);
+        onClose();
+      }
+    };
+
+    return (
+      <div className="modal">
+        <h3>Nowe zadanie</h3>
+        <input placeholder="Tytuł" value={title} onChange={e => setTitle(e.target.value)} />
+        <input placeholder="Opis" value={description} onChange={e => setDescription(e.target.value)} />
+        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+        <select value={priority} onChange={e => setPriority(e.target.value)}>
+          <option value="Ważne">Ważne</option>
+          <option value="Normalne">Normalne</option>
+          <option value="Może poczekać">Może poczekać</option>
+        </select>
+        <button onClick={handleSubmit}>💾 Zapisz</button>
+        <button onClick={onClose}>❌ Anuluj</button>
+      </div>
+    );
+  };
 }
 
 export default App;
