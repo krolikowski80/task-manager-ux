@@ -5,6 +5,12 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [taskData, setTaskData] = useState({
+    title: '',
+    description: '',
+    due_date: '',
+    priority: 'Normalne'
+  });
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -89,8 +95,24 @@ function App() {
       <button className="open-modal-button" onClick={() => setShowAddModal(true)}>➕ Dodaj zadanie</button>
       {showAddModal && (
         <AddTaskModal
+          show={showAddModal}
           onClose={() => setShowAddModal(false)}
-          onAdd={(task) => setTasks(prev => [...prev, task])}
+          onSubmit={async () => {
+            if (!taskData.title || !taskData.description) return alert('Uzupełnij wszystkie pola');
+            const response = await fetch(API_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(taskData)
+            });
+            if (response.ok) {
+              const newTask = await response.json();
+              setTasks(prev => [...prev, newTask]);
+              setShowAddModal(false);
+              setTaskData({ title: '', description: '', due_date: '', priority: 'Normalne' });
+            }
+          }}
+          taskData={taskData}
+          setTaskData={setTaskData}
         />
       )}
 
@@ -147,50 +169,6 @@ function App() {
       ))}
     </div>
   );
-  // Modal dodawania zadania
-  const AddTaskModal = ({ onClose, onAdd }) => {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [dueDate, setDueDate] = useState('');
-    const [priority, setPriority] = useState('Normalne');
-
-    const handleSubmit = async () => {
-      if (!title || !description) return alert('Uzupełnij wszystkie pola');
-
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          due_date: dueDate || null,
-          priority
-        })
-      });
-
-      if (response.ok) {
-        const newTask = await response.json();
-        onAdd(newTask);
-        onClose();
-      }
-    };
-
-    return (
-      <div className="modal">
-        <h3>Nowe zadanie</h3>
-        <input placeholder="Tytuł" value={title} onChange={e => setTitle(e.target.value)} />
-        <input placeholder="Opis" value={description} onChange={e => setDescription(e.target.value)} />
-        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-        <select value={priority} onChange={e => setPriority(e.target.value)}>
-          <option value="Ważne">Ważne</option>
-          <option value="Normalne">Normalne</option>
-          <option value="Może poczekać">Może poczekać</option>
-        </select>
-        <button onClick={handleSubmit}>💾 Zapisz</button>
-        <button onClick={onClose}>❌ Anuluj</button>
-      </div>
-    );
-  };
 }
 
 export default App;
