@@ -63,11 +63,13 @@ function App() {
       );
       if (response.ok) {
         const updated = await response.json();
-        if (isEditing) {
-          setTasks(prev => prev.map(t => t.id === task.id ? updated : t));
-        } else {
-          setTasks(prev => [...prev, updated]);
-        }
+        setTasks(prev => {
+          if (isEditing) {
+            return prev.map(t => t.id === task.id ? updated : t);
+          } else {
+            return [...prev, updated];
+          }
+        });
         onClose();
       }
     };
