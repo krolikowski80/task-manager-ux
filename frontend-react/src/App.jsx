@@ -149,7 +149,7 @@ function App() {
                 key={task.id}
                 className={`task-item ${task.completed ? 'done' : ''}`}
               >
-                <div>
+                <div className="title-wrapper">
                   <strong>{task.title}</strong>
                   {task.priority && (
                     <div className={`priority-label ${task.priority.toLowerCase().replace(/\s/g, '-')}`}>
