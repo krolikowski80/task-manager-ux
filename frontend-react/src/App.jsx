@@ -76,8 +76,18 @@ function App() {
       <div className="modal">
         <h3>{isEditing ? 'Edytuj zadanie' : 'Dodaj zadanie'}</h3>
         <input value={title} placeholder="Tytuł zadania" onChange={e => setTitle(e.target.value)} />
-        <input value={description} placeholder="Opis zadania" onChange={e => setDescription(e.target.value)} />
-        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+        <textarea
+          rows="3"
+          value={description}
+          placeholder="Opis zadania"
+          onChange={e => setDescription(e.target.value)}
+        />
+        <input
+          type="date"
+          value={dueDate}
+          placeholder="Wybierz datę zakończenia"
+          onChange={e => setDueDate(e.target.value)}
+        />
         <select value={priority} onChange={e => setPriority(e.target.value)}>
           <option value="Ważne">🔥 Ważne</option>
           <option value="Normalne">📌 Normalne</option>
@@ -93,8 +103,10 @@ function App() {
             <span>✅ Zrobione</span>
           </label>
         </div>
-        <button onClick={handleSave}>💾 Zapisz</button>
-        <button onClick={onClose}>❌ Anuluj</button>
+        <div className="modal-buttons">
+          <button onClick={handleSave}>💾 Zapisz</button>
+          <button onClick={onClose}>❌ Anuluj</button>
+        </div>
       </div>
     );
   };
