@@ -137,7 +137,7 @@ function App() {
           className="priority-select"
           value={priority}
           onChange={e => setPriority(e.target.value)}
-          style={{ width: "10rem" }}
+          style={{ width: "10rem", marginBottom: "0.5rem" }}
         >
           <option value="Ważne">Ważne</option>
           <option value="Normalne">Normalne</option>
@@ -185,9 +185,19 @@ function App() {
               >
                 <div>
                   <strong>{task.title}</strong>
-                  <div><em>Priorytet: {task.priority || 'Normalne'}</em></div>
+                  <div className={`priority-label ${task.priority?.toLowerCase().replace(/\s/g, '-') || 'normalne'}`}>
+                    {task.priority || 'Normalne'}
+                  </div>
                   <div className="description">{task.description}</div>
-                  <div className="date">{task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}</div>
+                  <div className="date">
+                    {task.due_date
+                      ? new Date(task.due_date).toLocaleDateString('pl-PL', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                      })
+                      : 'Brak terminu'}
+                  </div>
                 </div>
                 <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'nowrap' }}>
                   <button onClick={() => handleToggleComplete(task)}>
