@@ -8,6 +8,7 @@ function App() {
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Normalne');
   const [editingTask, setEditingTask] = useState(null);
+  const [addingTask, setAddingTask] = useState(false);
 
   const API_URL = 'https://app.krolikowski.cloud/tasks';
 
@@ -17,30 +18,6 @@ function App() {
       .then(setTasks)
       .catch(console.error);
   }, []);
-
-  const handleAddTask = async () => {
-    if (!title || !description) return alert('Uzupełnij wszystkie pola');
-
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title,
-        description,
-        due_date: dueDate || null,
-        priority
-      })
-    });
-
-    if (response.ok) {
-      const newTask = await response.json();
-      setTasks(prev => [...prev, newTask]);
-      setTitle('');
-      setDescription('');
-      setDueDate('');
-      setPriority('Normalne');
-    }
-  };
 
   const handleDelete = async (id) => {
     const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
@@ -63,7 +40,7 @@ function App() {
     setEditingTask(task);
   };
 
-  const EditModal = ({ task, onClose }) => {
+  const EditModal = ({ task, onClose, onSave, isNew = false }) => {
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description);
     const [completed, setCompleted] = useState(task.completed);
@@ -79,15 +56,28 @@ function App() {
         priority
       };
 
-      const response = await fetch(`${API_URL}/${task.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated)
-      });
+      if (isNew) {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        });
 
-      if (response.ok) {
-        setTasks(prev => prev.map(t => (t.id === task.id ? { ...t, ...updated } : t)));
-        onClose();
+        if (response.ok) {
+          const newTask = await response.json();
+          onSave(newTask);
+        }
+      } else {
+        const response = await fetch(`${API_URL}/${task.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        });
+
+        if (response.ok) {
+          setTasks(prev => prev.map(t => (t.id === task.id ? { ...t, ...updated } : t)));
+          onClose();
+        }
       }
     };
 
@@ -120,53 +110,24 @@ function App() {
         <EditModal task={editingTask} onClose={() => setEditingTask(null)} />
       )}
 
-      <div className="form">
-        <input
-          type="text"
-          placeholder="Tytuł"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          style={{ width: "10rem" }}
-        />
-        <input
-          type="text"
-          placeholder="Opis"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          style={{ width: "10rem" }}
-        />
-        <input
-          type="date"
-          value={dueDate}
-          onChange={e => setDueDate(e.target.value)}
-          style={{ width: "10rem" }}
-        />
-        <select
-          className="priority-select"
-          value={priority}
-          onChange={e => setPriority(e.target.value)}
-          style={{ width: "10rem" }}
-        >
-          <option value="Ważne">Ważne</option>
-          <option value="Normalne">Normalne</option>
-          <option value="Może poczekać">Może poczekać</option>
-        </select>
-        <button
-          className="add-button"
-          onClick={handleAddTask}
-          style={{
-            padding: '1rem 2rem',
-            fontSize: '1.2rem',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
+      {addingTask && (
+        <EditModal
+          task={{ title: '', description: '', completed: 0, due_date: '', priority: 'Normalne' }}
+          onClose={() => setAddingTask(false)}
+          onSave={(newTask) => {
+            setTasks(prev => [...prev, newTask]);
+            setAddingTask(false);
           }}
-        >
-          ➕ Dodaj zadanie
-        </button>
-      </div>
+          isNew
+        />
+      )}
+
+      <button
+        className="add-button"
+        onClick={() => setAddingTask(true)}
+      >
+        ➕ Dodaj zadanie
+      </button>
 
       {Object.entries(
         tasks
