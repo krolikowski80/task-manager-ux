@@ -217,27 +217,29 @@ body {
 
 /* Styl tagów priorytetu w liście */
 .priority-label {
-  font-weight: bold;
-  padding: 0.3rem 0.6rem;
-  border-radius: 5px;
+  font-weight: 500;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
   display: inline-block;
-  margin: 0.4rem 0;
-  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.1;
+  opacity: 0.9;
 }
 
 .priority-label.ważne {
-  background-color: #dc3545;
-  color: white;
+  background-color: #e74c3c;
+  color: #fff;
 }
 
 .priority-label.normalne {
-  background-color: #ffc107;
-  color: black;
+  background-color: #f1c40f;
+  color: #212529;
 }
 
 .priority-label.może-poczekać {
-  background-color: #6c757d;
-  color: white;
+  background-color: #95a5a6;
+  color: #fff;
 }
 
 /* Maksymalna szerokość inputa daty */

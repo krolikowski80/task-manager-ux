@@ -151,12 +151,14 @@ function App() {
               >
                 <div>
                   <strong>{task.title}</strong>
-                  <div className={`priority-label ${task.priority?.toLowerCase().replace(/\s/g, '-') || 'normalne'}`}>
-                    {task.priority === 'Ważne' && '🔥 '}
-                    {task.priority === 'Normalne' && '📌 '}
-                    {task.priority === 'Może poczekać' && '⏳ '}
-                    <strong>{task.priority || 'Normalne'}</strong>
-                  </div>
+                  {task.priority && (
+                    <div className={`priority-label ${task.priority.toLowerCase().replace(/\s/g, '-')}`}>
+                      {task.priority === 'Ważne' && '🔥 '}
+                      {task.priority === 'Normalne' && '📌 '}
+                      {task.priority === 'Może poczekać' && '⏳ '}
+                      {task.priority}
+                    </div>
+                  )}
                   <div className="description">{task.description}</div>
                   <div className="date">
                     {task.due_date
