@@ -7,9 +7,9 @@ function Login({ onLogin, switchToRegister }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // const API_URL = 'https://app.krolikowski.cloud';
+    const API_URL = 'https://app.krolikowski.cloud:5000';
     // const API_URL = 'http://localhost:5000';
-    const API_URL = 'http://85.193.192.108:5000';
+    // const API_URL = 'http://85.193.192.108:5000';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
