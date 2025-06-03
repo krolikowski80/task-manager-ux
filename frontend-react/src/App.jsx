@@ -18,6 +18,14 @@ function App() {
   // const API_URL = 'http://localhost:5000';
   // const API_URL = 'http://85.193.192.108:5000';
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Brak daty dodania';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `Dodano w dniu: ${day}-${month}-${year}`;
+  };
   // Sprawdź czy użytkownik jest już zalogowany przy starcie
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
@@ -291,7 +299,10 @@ function App() {
       {Object.entries(
         tasks
           .filter(t => t.due_date)
-          .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+          .sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed - b.completed;
+            return new Date(a.due_date) - new Date(b.due_date);
+          })
           .reduce((acc, task) => {
             const date = new Date(task.due_date).toLocaleDateString('pl-PL', {
               year: 'numeric',
@@ -323,7 +334,7 @@ function App() {
                   </div>
                   <div className="description">{task.description}</div>
                   <div className="date">
-                    {task.due_date ? task.due_date.split('T')[0] : 'Brak terminu'}
+                    {task.created_at ? formatDate(task.created_at) : 'Brak daty dodania'}
                   </div>
                 </div>
                 <div className="actions">
@@ -343,7 +354,7 @@ function App() {
         <div>
           <h3>Bez terminu</h3>
           <ul className="task-list">
-            {tasks.filter(t => !t.due_date).map(task => (
+            {tasks.filter(t => !t.due_date).sort((a, b) => a.completed - b.completed).map(task => (
               <li
                 key={task.id}
                 className={`task-item ${task.completed ? 'done' : ''}`}
