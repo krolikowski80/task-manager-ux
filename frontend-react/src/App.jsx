@@ -325,12 +325,12 @@ function App() {
                 <div className="task-content">
                   <div className="title-wrapper">
                     <strong>{task.title}</strong>
-                    <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
-                      {task.priority === 'Ważne' && '🔥 '}
-                      {task.priority === 'Normalne' && '📌 '}
-                      {task.priority === 'Może poczekać' && '⏳ '}
-                      {task.priority}
-                    </div>
+                  </div>
+                  <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
+                    {task.priority === 'Ważne' && '🔥 '}
+                    {task.priority === 'Normalne' && '📌 '}
+                    {task.priority === 'Może poczekać' && '⏳ '}
+                    {task.priority}
                   </div>
                   <div className="description">{task.description}</div>
                   <div className="date">
@@ -362,12 +362,12 @@ function App() {
                 <div className="task-content">
                   <div className="title-wrapper">
                     <strong>{task.title}</strong>
-                    <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
-                      {task.priority === 'Ważne' && '🔥 '}
-                      {task.priority === 'Normalne' && '📌 '}
-                      {task.priority === 'Może poczekać' && '⏳ '}
-                      {task.priority}
-                    </div>
+                  </div>
+                  <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
+                    {task.priority === 'Ważne' && '🔥 '}
+                    {task.priority === 'Normalne' && '📌 '}
+                    {task.priority === 'Może poczekać' && '⏳ '}
+                    {task.priority}
                   </div>
                   <div className="description">{task.description}</div>
                 </div>
