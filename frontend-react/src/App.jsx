@@ -28,6 +28,7 @@ function App() {
   };
 
   const parseSubTasks = (text) => {
+    if (!text) return [];
     const lines = text.split('\n');
     const parsed = lines.map(line => {
       const checkboxMatch = line.match(/^- \[([ x])\] (.+)$/);
@@ -64,7 +65,9 @@ function App() {
       }).join('\n');
 
       // Wywołaj update
-      onUpdate(newDescription);
+      if (onUpdate) {
+        await onUpdate(newDescription);
+      }
     };
 
     return (
@@ -98,15 +101,22 @@ function App() {
     // Utwórz zaktualizowane zadanie
     const updatedTask = { ...task, description: newDescription };
 
-    // Wyślij do API
-    const response = await makeAuthenticatedRequest(`${API_URL}/tasks/${taskId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updatedTask)
-    });
+    try {
+      // Wyślij do API
+      const response = await makeAuthenticatedRequest(`${API_URL}/tasks/${taskId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updatedTask)
+      });
 
-    if (response && response.ok) {
-      // Aktualizuj state
-      setTasks(prev => prev.map(t => (t.id === taskId ? updatedTask : t)));
+      if (response && response.ok) {
+        // Aktualizuj state
+        setTasks(prev => prev.map(t => (t.id === taskId ? updatedTask : t)));
+        console.log('Sub-zadanie zaktualizowane pomyślnie');
+      } else {
+        console.error('Błąd aktualizacji sub-zadania');
+      }
+    } catch (error) {
+      console.error('Błąd podczas aktualizacji sub-zadania:', error);
     }
   };
 
@@ -289,8 +299,8 @@ function App() {
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="Wprowadź opis zadania"
-            rows="3"
+            placeholder="Wprowadź opis zadania lub sub-zadania w formacie:&#10;- [ ] Zadanie do zrobienia&#10;- [x] Zadanie wykonane&#10;Zwykły tekst"
+            rows="4"
           />
 
           <label>Termin wykonania:</label>
@@ -478,7 +488,15 @@ function App() {
                     {task.priority === 'Może poczekać' && '⏳ '}
                     {task.priority}
                   </div>
-                  <div className="description">{task.description}</div>
+                  {/* TUTAJ BYŁA GŁÓWNA ZMIANA - używamy SubTaskRenderer zamiast zwykłego div */}
+                  <SubTaskRenderer
+                    description={task.description}
+                    taskId={task.id}
+                    onUpdate={(newDescription) => handleSubTaskUpdate(task.id, newDescription)}
+                  />
+                  <div className="date">
+                    {task.created_at ? formatDate(task.created_at) : 'Brak daty dodania'}
+                  </div>
                 </div>
                 <div className="actions">
                   <button onClick={() => handleToggleComplete(task)}>

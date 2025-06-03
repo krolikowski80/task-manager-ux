@@ -138,6 +138,53 @@
   font-size: 12px;
 }
 
+/* Style dla sub-zadań */
+.subtasks {
+  margin: 8px 0;
+  padding: 0;
+}
+
+.subtask-line {
+  margin: 4px 0;
+  line-height: 1.4;
+}
+
+.subtask-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+  padding: 2px 0;
+}
+
+.subtask-checkbox input[type="checkbox"] {
+  margin: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+.subtask-checkbox span {
+  flex: 1;
+  transition: all 0.2s ease;
+}
+
+.subtask-checkbox .subtask-done {
+  text-decoration: line-through;
+  color: #999;
+  opacity: 0.7;
+}
+
+.subtask-text {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+  margin: 2px 0;
+  padding-left: 0px;
+}
+
 /* Etykiety priorytetów */
 .priority-label {
   padding: 4px 8px;
@@ -335,5 +382,9 @@
   .modal {
     padding: 20px;
     margin: 20px;
+  }
+
+  .subtask-checkbox {
+    font-size: 13px;
   }
 }
