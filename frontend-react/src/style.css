@@ -162,6 +162,12 @@
   border: 1px solid #74b9ff;
 }
 
+.priority-label.zwykłe {
+  background: #e6f3ff;
+  color: #0984e3;
+  border: 1px solid #74b9ff;
+}
+
 .priority-label.może-poczekać {
   background: #f0f0f0;
   color: #636e72;

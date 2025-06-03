@@ -26,6 +26,90 @@ function App() {
     const year = date.getFullYear();
     return `Dodano w dniu: ${day}-${month}-${year}`;
   };
+
+  const parseSubTasks = (text) => {
+    const lines = text.split('\n');
+    const parsed = lines.map(line => {
+      const checkboxMatch = line.match(/^- \[([ x])\] (.+)$/);
+      if (checkboxMatch) {
+        return {
+          type: 'checkbox',
+          checked: checkboxMatch[1] === 'x',
+          text: checkboxMatch[2]
+        };
+      }
+      return { type: 'text', text: line };
+    });
+    return parsed;
+  };
+
+  const SubTaskRenderer = ({ description, taskId, onUpdate }) => {
+    const parsedLines = parseSubTasks(description);
+
+    const handleCheckboxToggle = async (lineIndex) => {
+      const newLines = parsedLines.map((line, index) => {
+        if (index === lineIndex && line.type === 'checkbox') {
+          return { ...line, checked: !line.checked };
+        }
+        return line;
+      });
+
+      // Odbuduj tekst
+      const newDescription = newLines.map(line => {
+        if (line.type === 'checkbox') {
+          const check = line.checked ? 'x' : ' ';
+          return `- [${check}] ${line.text}`;
+        }
+        return line.text;
+      }).join('\n');
+
+      // Wywołaj update
+      onUpdate(newDescription);
+    };
+
+    return (
+      <div className="subtasks">
+        {parsedLines.map((line, index) => (
+          <div key={index} className="subtask-line">
+            {line.type === 'checkbox' ? (
+              <label className="subtask-checkbox">
+                <input
+                  type="checkbox"
+                  checked={line.checked}
+                  onChange={() => handleCheckboxToggle(index)}
+                />
+                <span className={line.checked ? 'subtask-done' : ''}>{line.text}</span>
+              </label>
+            ) : (
+              <div className="subtask-text">{line.text}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Funkcja do aktualizacji pod-zadań
+  const handleSubTaskUpdate = async (taskId, newDescription) => {
+    // Znajdź zadanie
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Utwórz zaktualizowane zadanie
+    const updatedTask = { ...task, description: newDescription };
+
+    // Wyślij do API
+    const response = await makeAuthenticatedRequest(`${API_URL}/tasks/${taskId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updatedTask)
+    });
+
+    if (response && response.ok) {
+      // Aktualizuj state
+      setTasks(prev => prev.map(t => (t.id === taskId ? updatedTask : t)));
+    }
+  };
+
   // Sprawdź czy użytkownik jest już zalogowany przy starcie
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
@@ -128,7 +212,13 @@ function App() {
     const [description, setDescription] = useState(task.description || '');
     const [completed, setCompleted] = useState(task.completed || 0);
     const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
-    const [priority, setPriority] = useState(task.priority || 'Normalne');
+    const [priority, setPriority] = useState(task.priority || 'Zwykłe');
+
+    // Debug - sprawdź co otrzymuje komponent
+    console.log('=== EditModal inicjalizacja ===');
+    console.log('task.priority:', task.priority);
+    console.log('ustawiony priority:', task.priority || 'Zwykłe');
+    console.log('isNew:', isNew);
 
     const handleSave = async () => {
       const taskData = {
@@ -136,17 +226,24 @@ function App() {
         description,
         completed: Number(completed),
         due_date: dueDate,
-        priority: String(priority)
+        priority: priority // Bez String() - to już jest string
       };
+
+      // Debug - co wysyłamy
+      console.log('=== Zapisywanie zadania ===');
+      console.log('Dane do wysłania:', taskData);
+      console.log('Priority w danych:', taskData.priority, typeof taskData.priority);
 
       try {
         let response;
         if (isNew) {
+          console.log('Wysyłam POST na:', `${API_URL}/tasks`);
           response = await makeAuthenticatedRequest(`${API_URL}/tasks`, {
             method: 'POST',
             body: JSON.stringify(taskData),
           });
         } else {
+          console.log('Wysyłam PUT na:', `${API_URL}/tasks/${task.id}`);
           response = await makeAuthenticatedRequest(`${API_URL}/tasks/${task.id}`, {
             method: 'PUT',
             body: JSON.stringify(taskData)
@@ -155,6 +252,9 @@ function App() {
 
         if (response && response.ok) {
           const updatedTask = await response.json();
+          console.log('Otrzymane z serwera:', updatedTask);
+          console.log('Priority z serwera:', updatedTask.priority);
+          
           if (isNew) {
             onSave(updatedTask);
           } else {
@@ -162,7 +262,9 @@ function App() {
             onClose();
           }
         } else {
-          alert('Nie udało się zapisać zadania');
+          const errorText = await response?.text() || 'Nieznany błąd';
+          console.error('Błąd serwera:', errorText);
+          alert('Nie udało się zapisać zadania: ' + errorText);
         }
       } catch (error) {
         console.error('Error saving task:', error);
@@ -201,10 +303,13 @@ function App() {
           <label>Priorytet:</label>
           <select
             value={priority}
-            onChange={e => setPriority(e.target.value)}
+            onChange={e => {
+              console.log('Zmiana priorytetu z:', priority, 'na:', e.target.value);
+              setPriority(e.target.value);
+            }}
           >
             <option value="Ważne">🔥 Ważne</option>
-            <option value="Normalne">📌 Normalne</option>
+            <option value="Zwykłe">📌 Zwykłe</option>
             <option value="Może poczekać">⏳ Może poczekać</option>
           </select>
 
@@ -278,7 +383,7 @@ function App() {
             description: '',
             completed: 0,
             due_date: '',
-            priority: 'Normalne'
+            priority: 'Zwykłe'
           }}
           onClose={() => setAddingTask(false)}
           onSave={(newTask) => {
@@ -315,7 +420,7 @@ function App() {
           }, {})
       ).map(([date, group]) => (
         <div key={date}>
-          <h3>{date}</h3>
+          <h3>📅 {date}</h3>
           <ul className="task-list">
             {group.map(task => (
               <li
@@ -328,11 +433,15 @@ function App() {
                   </div>
                   <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
                     {task.priority === 'Ważne' && '🔥 '}
-                    {task.priority === 'Normalne' && '📌 '}
+                    {task.priority === 'Zwykłe' && '📌 '}
                     {task.priority === 'Może poczekać' && '⏳ '}
                     {task.priority}
                   </div>
-                  <div className="description">{task.description}</div>
+                  <SubTaskRenderer
+                    description={task.description}
+                    taskId={task.id}
+                    onUpdate={(newDescription) => handleSubTaskUpdate(task.id, newDescription)}
+                  />
                   <div className="date">
                     {task.created_at ? formatDate(task.created_at) : 'Brak daty dodania'}
                   </div>
@@ -352,7 +461,7 @@ function App() {
 
       {tasks.filter(t => !t.due_date).length > 0 && (
         <div>
-          <h3>Bez terminu</h3>
+          <h3>📅 Bez terminu</h3>
           <ul className="task-list">
             {tasks.filter(t => !t.due_date).sort((a, b) => a.completed - b.completed).map(task => (
               <li
@@ -365,7 +474,7 @@ function App() {
                   </div>
                   <div className={`priority-label ${task.priority?.toLowerCase().replace(' ', '-')}`}>
                     {task.priority === 'Ważne' && '🔥 '}
-                    {task.priority === 'Normalne' && '📌 '}
+                    {task.priority === 'Zwykłe' && '📌 '}
                     {task.priority === 'Może poczekać' && '⏳ '}
                     {task.priority}
                   </div>
