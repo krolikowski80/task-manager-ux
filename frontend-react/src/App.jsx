@@ -14,7 +14,7 @@ function App() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = 'https://app.krolikowski.cloud:5000';
+  const API_URL = 'https://app.krolikowski.cloud/api';
   // const API_URL = 'http://localhost:5000';
   // const API_URL = 'http://85.193.192.108:5000';
 
