@@ -1,33 +1,110 @@
 import { useState, useEffect } from 'react';
 import './style.css';
+import Login from './Login';
+import Register from './Register';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
   const [addingTask, setAddingTask] = useState(false);
 
-  const API_URL = 'https://app.krolikowski.cloud/tasks';
+  // Nowe stany dla autoryzacji
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const API_URL = 'https://app.krolikowski.cloud';
+
+  // Sprawdź czy użytkownik jest już zalogowany przy starcie
   useEffect(() => {
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(setTasks)
-      .catch(console.error);
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+
+    if (savedToken && savedUser) {
+      setToken(savedToken);
+      setUser(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
   }, []);
 
+  // Pobierz zadania gdy użytkownik jest zalogowany
+  useEffect(() => {
+    if (user && token) {
+      fetchTasks();
+    }
+  }, [user, token]);
+
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch(`${API_URL}/tasks`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTasks(data);
+      } else if (response.status === 401) {
+        // Token wygasł - wyloguj
+        handleLogout();
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
+
+  const handleLogin = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setToken(null);
+    setTasks([]);
+  };
+
+  const makeAuthenticatedRequest = async (url, options = {}) => {
+    const defaultOptions = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    const response = await fetch(url, defaultOptions);
+
+    if (response.status === 401) {
+      // Token wygasł - wyloguj
+      handleLogout();
+      return null;
+    }
+
+    return response;
+  };
+
   const handleDelete = async (id) => {
-    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    if (response.ok) setTasks(prev => prev.filter(t => t.id !== id));
+    const response = await makeAuthenticatedRequest(`${API_URL}/tasks/${id}`, {
+      method: 'DELETE'
+    });
+    if (response && response.ok) {
+      setTasks(prev => prev.filter(t => t.id !== id));
+    }
   };
 
   const handleToggleComplete = async (task) => {
     const updated = { ...task, completed: task.completed ? 0 : 1 };
-    const response = await fetch(`${API_URL}/${task.id}`, {
+    const response = await makeAuthenticatedRequest(`${API_URL}/tasks/${task.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updated)
     });
-    if (response.ok) {
+    if (response && response.ok) {
       setTasks(prev => prev.map(t => (t.id === task.id ? updated : t)));
     }
   };
@@ -43,94 +120,43 @@ function App() {
     const [dueDate, setDueDate] = useState(task.due_date?.split('T')[0] || '');
     const [priority, setPriority] = useState(task.priority || 'Normalne');
 
-    // Debug inicjalizacji
-    console.log('=== INICJALIZACJA MODAL ===');
-    console.log('task.priority z props:', task.priority);
-    console.log('Ustawiony priority w state:', task.priority || 'Normalne');
-    console.log('isNew:', isNew);
-    console.log('Cały task object:', task);
-
     const handleSave = async () => {
-      if (isNew) {
-        const updated = {
-          title,
-          description,
-          completed: Number(completed),
-          due_date: dueDate,
-          priority: String(priority)  // Upewnij się że to string
-        };
+      const taskData = {
+        title,
+        description,
+        completed: Number(completed),
+        due_date: dueDate,
+        priority: String(priority)
+      };
 
-        console.log('DEBUG priority is:', priority);
-        console.log('Wysyłane dane JSON:', JSON.stringify(updated, null, 2));
-
-        try {
-          const response = await fetch(API_URL, {
+      try {
+        let response;
+        if (isNew) {
+          response = await makeAuthenticatedRequest(`${API_URL}/tasks`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updated),
+            body: JSON.stringify(taskData),
           });
-
-          console.log('Status odpowiedzi:', response.status);
-
-          if (response.ok) {
-            const newTask = await response.json();
-            console.log('Otrzymane z serwera (RAW):', newTask);
-
-            // TUTAJ JEST PROBLEM - nie nadpisuj priorytetu!
-            // Użyj tego co zwrócił serwer lub upewnij się że serwer zwraca poprawny priorytet
-            console.log('Priorytet z serwera:', newTask.priority);
-
-            // Jeśli serwer nie zwraca priorytetu lub zwraca błędny, użyj lokalnego
-            if (!newTask.priority) {
-              newTask.priority = priority;
-            }
-
-            onSave(newTask); // Przekaż cały obiekt z serwera
-          } else {
-            const errorText = await response.text();
-            console.error('Błąd serwera:', response.status, errorText);
-            alert('Nie udało się dodać zadania: ' + errorText);
-          }
-        } catch (error) {
-          console.error('Błąd sieci:', error);
-          alert('Błąd połączenia z serwerem');
-        }
-      } else {
-        // kod dla edycji pozostaje bez zmian
-        const updated = {
-          title,
-          description,
-          completed: Number(completed),
-          due_date: dueDate,
-          priority: String(priority)  // Też upewnij się że to string
-        };
-
-        try {
-          const response = await fetch(`${API_URL}/${task.id}`, {
+        } else {
+          response = await makeAuthenticatedRequest(`${API_URL}/tasks/${task.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updated)
+            body: JSON.stringify(taskData)
           });
+        }
 
-          if (response.ok) {
-            const updatedTask = await response.json();
-
-            // Jeśli serwer nie zwraca priorytetu, użyj lokalnego
-            if (!updatedTask.priority) {
-              updatedTask.priority = priority;
-            }
-
+        if (response && response.ok) {
+          const updatedTask = await response.json();
+          if (isNew) {
+            onSave(updatedTask);
+          } else {
             setTasks(prev => prev.map(t => (t.id === task.id ? updatedTask : t)));
             onClose();
-          } else {
-            const errorText = await response.text();
-            console.error('Błąd aktualizacji:', errorText);
-            alert('Nie udało się zaktualizować zadania');
           }
-        } catch (error) {
-          console.error('Błąd sieci:', error);
-          alert('Błąd połączenia z serwerem');
+        } else {
+          alert('Nie udało się zapisać zadania');
         }
+      } catch (error) {
+        console.error('Error saving task:', error);
+        alert('Błąd połączenia z serwerem');
       }
     };
 
@@ -165,10 +191,7 @@ function App() {
           <label>Priorytet:</label>
           <select
             value={priority}
-            onChange={e => {
-              console.log('Zmiana priorytetu z:', priority, 'na:', e.target.value);
-              setPriority(e.target.value);
-            }}
+            onChange={e => setPriority(e.target.value)}
           >
             <option value="Ważne">🔥 Ważne</option>
             <option value="Normalne">📌 Normalne</option>
@@ -193,9 +216,42 @@ function App() {
     );
   };
 
+  // Loading state
+  if (isLoading) {
+    return <div className="loading">Ładowanie...</div>;
+  }
+
+  // Jeśli nie zalogowany - pokaż formularze logowania/rejestracji
+  if (!user) {
+    return (
+      <>
+        {isLoginMode ? (
+          <Login
+            onLogin={handleLogin}
+            switchToRegister={() => setIsLoginMode(false)}
+          />
+        ) : (
+          <Register
+            onLogin={handleLogin}
+            switchToLogin={() => setIsLoginMode(true)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Główna aplikacja dla zalogowanych użytkowników
   return (
     <div className="container">
-      <h1>Lista Zadań</h1>
+      <div className="header">
+        <h1>Lista Zadań</h1>
+        <div className="user-info">
+          <span>Witaj, {user.username}!</span>
+          <button onClick={handleLogout} className="logout-button">
+            🚪 Wyloguj
+          </button>
+        </div>
+      </div>
 
       {editingTask && (
         <EditModal
