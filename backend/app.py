@@ -59,8 +59,8 @@ def register():
         cursor.close()
         conn.close()
 
-        # Utwórz token dla nowego użytkownika
-        access_token = create_access_token(identity=user_id)
+        # Utwórz token dla nowego użytkownika - POPRAWKA: str(user_id)
+        access_token = create_access_token(identity=str(user_id))
 
         return jsonify({
             'message': 'Użytkownik utworzony pomyślnie',
@@ -93,7 +93,8 @@ def login():
     if not user or not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
         return jsonify({'error': 'Nieprawidłowy username lub password'}), 401
 
-    access_token = create_access_token(identity=user['id'])
+    # POPRAWKA: str(user['id'])
+    access_token = create_access_token(identity=str(user['id']))
 
     return jsonify({
         'access_token': access_token,
@@ -111,6 +112,8 @@ def login():
 @jwt_required()
 def get_tasks():
     user_id = get_jwt_identity()
+    # POPRAWKA: konwertuj z powrotem na int dla zapytań SQL
+    user_id = int(user_id)
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -125,6 +128,8 @@ def get_tasks():
 @jwt_required()
 def add_task():
     user_id = get_jwt_identity()
+    # POPRAWKA: konwertuj z powrotem na int dla zapytań SQL
+    user_id = int(user_id)
     data = request.get_json()
 
     title = data.get('title')
@@ -160,6 +165,8 @@ def add_task():
 @jwt_required()
 def update_task(task_id):
     user_id = get_jwt_identity()
+    # POPRAWKA: konwertuj z powrotem na int dla zapytań SQL
+    user_id = int(user_id)
     data = request.get_json()
 
     # Sprawdź czy task należy do użytkownika
@@ -202,6 +209,8 @@ def update_task(task_id):
 @jwt_required()
 def delete_task(task_id):
     user_id = get_jwt_identity()
+    # POPRAWKA: konwertuj z powrotem na int dla zapytań SQL
+    user_id = int(user_id)
 
     conn = get_db_connection()
     cursor = conn.cursor()
